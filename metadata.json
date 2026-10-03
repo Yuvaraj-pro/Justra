@@ -1,0 +1,7 @@
+{
+  "name": "NyayaMate",
+  "description": "Offline-first AI Legal Assistant, Document Generator, Vault, Global Jurisdictions & World Wide Law Open Data Hub (110+ Countries, 960+ Collection Scripts, 16M+ Records) with Tamil & English support (நியாயமேட்)",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

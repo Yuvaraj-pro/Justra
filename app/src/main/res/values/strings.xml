@@ -1,0 +1,71 @@
+<resources>
+    <string name="app_name">Justra</string>
+    <string name="app_name_tamil">ஜஸ்ட்ரா</string>
+    <string name="app_tagline">Human Dignity &amp; Legal Clarity</string>
+
+    <!-- Navigation and General -->
+    <string name="nav_home">Home</string>
+    <string name="nav_vault">Privileged Vault</string>
+    <string name="nav_chat">AI Legal Assistant</string>
+    <string name="nav_generator">Notice Composer</string>
+    <string name="nav_sec65b">Section 65B Certificate</string>
+    <string name="nav_bns_ipc">BNS vs IPC Converter</string>
+    <string name="nav_scam_checker">Scam &amp; Threat Defense</string>
+    <string name="nav_timeline">Dispute Timeline</string>
+    <string name="nav_action_navigator">Statutory Remedy Matrix</string>
+    <string name="nav_nalsa_legal_aid">NALSA Legal Aid</string>
+    <string name="nav_women_rights">Women &amp; Domestic Rights</string>
+    <string name="nav_consumer_mediation">Consumer Mediation</string>
+    <string name="nav_mact_calculator">Motor Accident MACT</string>
+    <string name="nav_court_fee">Court Fee Calculator</string>
+    <string name="nav_rti_wizard">RTI Drafting Wizard</string>
+    <string name="nav_cyber_dossier">Cyber Crime Dossier</string>
+    <string name="nav_global_jurisdictions">Global Jurisdictions &amp; UN Hub</string>
+    <string name="nav_account_settings">Account &amp; Security Hub</string>
+    <string name="nav_notifications">Reminders &amp; Deadlines</string>
+    <string name="nav_legal_documents">Legal Documents</string>
+    <string name="nav_draft_templates">Statutory Draft Templates</string>
+    <string name="offline_templates_badge">Offline Statutory Templates</string>
+    <string name="offline_documents_badge">Offline Local Storage</string>
+
+    <!-- Common UI Actions -->
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_confirm">Confirm</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_share">Share</string>
+    <string name="action_export">Export PDF</string>
+    <string name="action_copy">Copy</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_back">Back</string>
+    <string name="action_search">Search</string>
+    <string name="action_generate">Generate Draft</string>
+    <string name="action_authenticate">Authenticate</string>
+    <string name="action_lock_vault">Lock Vault</string>
+
+    <!-- Privacy & Offline Security -->
+    <string name="security_offline_badge">100% Offline-First Privileged Storage</string>
+    <string name="security_encryption_label">AES-256-GCM &amp; SHA-256 Admissibility</string>
+    <string name="security_biometric_prompt">Biometric Authentication Required</string>
+    <string name="security_inactivity_lock">Auto-locked due to 5 minutes of inactivity</string>
+
+    <!-- Jurisdictions & UN Hub -->
+    <string name="jurisdiction_active_title">Active Legal Jurisdiction</string>
+    <string name="jurisdiction_common_law">Common Law Framework</string>
+    <string name="jurisdiction_civil_law">Civil Law Framework</string>
+    <string name="jurisdiction_p5_member">UN Security Council P5 Member</string>
+
+    <!-- World Wide Law Open Data -->
+    <string name="nav_world_wide_law">World Wide Law Hub</string>
+    <string name="world_wide_law_subtitle">Open legal collection scripts from 110+ countries</string>
+    <string name="world_wide_law_endpoints_count">3,400+ Open Legal Endpoints</string>
+    <string name="world_wide_law_indexed_docs">16M+ Indexed Records (legaldatahunter.com)</string>
+    <string name="world_wide_law_pin_offline">Pin to Offline Room DB</string>
+    <string name="world_wide_law_saved_in_vault">Saved to Privileged Evidence Vault</string>
+
+    <!-- Landing & Rights -->
+    <string name="landing_hero_title">Democratizing Statutory Justice</string>
+    <string name="landing_hero_sub">AI-assisted legal intake, cryptographic evidence vault &amp; smart statutory notice generator for every citizen.</string>
+    <string name="citizen_rights_title">Citizen Statutory Rights &amp; Legal Protections</string>
+    <string name="ux_principles_title">Citizen Statutory Rights &amp; Legal Protections</string>
+</resources>

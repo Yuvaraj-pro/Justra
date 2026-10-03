@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ஜஸ்ட்ரா</string>
+    <string name="app_name_tamil">ஜஸ்ட்ரா</string>
+    <string name="app_tagline">மனித மாண்பு &amp; சட்டத் தெளிவு</string>
+
+    <!-- Navigation and General -->
+    <string name="nav_home">முகப்பு</string>
+    <string name="nav_vault">சான்றுகள் பெட்டகம்</string>
+    <string name="nav_chat">AI சட்ட உதவியாளர்</string>
+    <string name="nav_generator">நோட்டீஸ் வரைவு</string>
+    <string name="nav_sec65b">பிரிவு 65B சான்றிதழ்</string>
+    <string name="nav_bns_ipc">BNS vs IPC சட்ட ஒப்பீடு</string>
+    <string name="nav_scam_checker">மோசடி &amp; அச்சுறுத்தல் பாதுகாப்பு</string>
+    <string name="nav_timeline">வழக்கு காலவரிசை</string>
+    <string name="nav_action_navigator">சட்ட நிவாரண அட்டவணை</string>
+    <string name="nav_nalsa_legal_aid">நல்சா இலவச சட்ட உதவி</string>
+    <string name="nav_women_rights">பெண்கள் &amp; குடும்ப உரிமைகள்</string>
+    <string name="nav_consumer_mediation">நுகர்வோர் தீர்வு மையம்</string>
+    <string name="nav_mact_calculator">வாகன விபத்து இழப்பீடு</string>
+    <string name="nav_court_fee">நீதிமன்ற கட்டண கணக்கீடு</string>
+    <string name="nav_rti_wizard">தகவல் அறியும் உரிமை (RTI)</string>
+    <string name="nav_cyber_dossier">சைபர் குற்ற ஆவணம்</string>
+    <string name="nav_global_jurisdictions">உலகளாவிய சட்ட எல்லைகள் &amp; ஐ.நா. மையம்</string>
+    <string name="nav_account_settings">கணக்கு &amp; பாதுகாப்பு மையம்</string>
+    <string name="nav_notifications">நினைவூட்டல்கள் &amp; வரம்புகள்</string>
+
+    <!-- Common UI Actions -->
+    <string name="action_save">சேமிக்க</string>
+    <string name="action_cancel">ரத்து செய்க</string>
+    <string name="action_confirm">உறுதிப்படுத்துக</string>
+    <string name="action_delete">நீக்குக</string>
+    <string name="action_share">பகிர்க</string>
+    <string name="action_export">PDF பதிவிறக்கம்</string>
+    <string name="action_copy">நகலெடுக்க</string>
+    <string name="action_edit">திருத்துக</string>
+    <string name="action_back">பின்செல்க</string>
+    <string name="action_search">தேடுக</string>
+    <string name="action_generate">வரைவை உருவாக்கு</string>
+    <string name="action_authenticate">சான்றளிக்க</string>
+    <string name="action_lock_vault">பெட்டகத்தைப் பூட்டு</string>
+
+    <!-- Privacy & Offline Security -->
+    <string name="security_offline_badge">100% ஆஃப்லைன் தனிப்பட்ட தரவுப் பாதுகாப்பு</string>
+    <string name="security_encryption_label">AES-256-GCM குறியாக்கம் &amp; SHA-256 சான்று ஏற்பு</string>
+    <string name="security_biometric_prompt">பயோமெட்ரிக் அங்கீகாரம் தேவை</string>
+    <string name="security_inactivity_lock">5 நிமிட செயலற்ற நிலைக்குப் பிறகு தானாகப் பூட்டப்பட்டது</string>
+
+    <!-- Jurisdictions & UN Hub -->
+    <string name="jurisdiction_active_title">தற்போதைய சட்ட எல்லை</string>
+    <string name="jurisdiction_common_law">பொது சட்டக் கட்டமைப்பு</string>
+    <string name="jurisdiction_civil_law">சிவில் சட்டக் கட்டமைப்பு</string>
+    <string name="jurisdiction_p5_member">ஐ.நா. பாதுகாப்பு கவுன்சில் P5 நிரந்தர உறுப்பு நாடு</string>
+
+    <!-- World Wide Law Open Data -->
+    <string name="nav_world_wide_law">உலகளாவிய சட்டத் தரவுத்தளம்</string>
+    <string name="world_wide_law_subtitle">110+ நாடுகளின் திறந்தநிலை சட்ட சேகரிப்பு ஸ்கிரிப்ட்கள்</string>
+    <string name="world_wide_law_endpoints_count">3,400+ திறந்தநிலை சட்ட ஆதாரங்கள்</string>
+    <string name="world_wide_law_indexed_docs">1.6 கோடி ஆவணங்கள் (legaldatahunter.com)</string>
+    <string name="world_wide_law_pin_offline">Room DB-இல் ஆஃப்லைனில் சேமி</string>
+    <string name="world_wide_law_saved_in_vault">சான்றுகள் பெட்டகத்தில் பாதுகாப்பாக சேமிக்கப்பட்டது</string>
+
+    <!-- Landing & Rights -->
+    <string name="landing_hero_title">நீதி அணுகலை எளிமையாக்குதல்</string>
+    <string name="landing_hero_sub">குடிமக்களுக்கான AI சட்ட வழிகாட்டி, சான்றுகள் பெட்டகம் &amp; சட்ட அறிவிப்பு தயாரிப்பு.</string>
+    <string name="citizen_rights_title">குடிமக்களின் சட்டப்பூர்வ உரிமைகள் &amp; பாதுகாப்புக்கள்</string>
+    <string name="ux_principles_title">குடிமக்களின் சட்டப்பூர்வ உரிமைகள் &amp; பாதுகாப்புக்கள்</string>
+</resources>

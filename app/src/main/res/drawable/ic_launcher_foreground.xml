@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Outer Warm Gold (#E5A93C) Protective Shield Silhouette -->
+    <path
+        android:fillColor="#E5A93C"
+        android:pathData="M 54,32 L 78,38 L 78,63 C 78,77 65,85 54,88 C 43,85 30,77 30,63 L 30,38 Z" />
+
+    <!-- Inner Sovereign Navy (#0F1E36) Shield Core -->
+    <path
+        android:fillColor="#0F1E36"
+        android:pathData="M 54,36 L 74,41 L 74,61 C 74,73 63,81 54,83 C 45,81 34,73 34,61 L 34,41 Z" />
+
+    <!-- Scales of Justice (நீதித் தராசு) in Crisp Ivory (#FAF7F2) -->
+    
+    <!-- Central Pillar Base & Shaft -->
+    <path
+        android:fillColor="#FAF7F2"
+        android:pathData="M 52.5,42 H 55.5 V 76 H 61 V 79 H 47 V 76 H 51.5 Z" />
+
+    <!-- Fulcrum Knob at top of central pillar -->
+    <path
+        android:fillColor="#E5A93C"
+        android:pathData="M 54,39.5 L 56,41.5 L 54,43.5 L 52,41.5 Z" />
+
+    <!-- Horizontal Balance Beam -->
+    <path
+        android:fillColor="#FAF7F2"
+        android:pathData="M 37,45.5 H 71 V 48.5 H 37 Z" />
+
+    <!-- Beam End Accent Caps (Warm Gold) -->
+    <path
+        android:fillColor="#E5A93C"
+        android:pathData="M 36,44.5 H 38 V 49.5 H 36 Z M 70,44.5 H 72 V 49.5 H 70 Z" />
+
+    <!-- Left Scale Suspension Strings -->
+    <path
+        android:strokeColor="#FAF7F2"
+        android:strokeWidth="1.2"
+        android:pathData="M 39,48.5 L 34.5,61 M 39,48.5 L 45.5,61" />
+
+    <!-- Left Scale Pan (Bowl/Dish) -->
+    <path
+        android:fillColor="#FAF7F2"
+        android:pathData="M 33.5,61 H 46.5 C 46.5,66.5 33.5,66.5 33.5,61 Z" />
+
+    <!-- Right Scale Suspension Strings -->
+    <path
+        android:strokeColor="#FAF7F2"
+        android:strokeWidth="1.2"
+        android:pathData="M 69,48.5 L 64.5,61 M 69,48.5 L 75.5,61" />
+
+    <!-- Right Scale Pan (Bowl/Dish) -->
+    <path
+        android:fillColor="#FAF7F2"
+        android:pathData="M 63.5,61 H 76.5 C 76.5,66.5 63.5,66.5 63.5,61 Z" />
+
+    <!-- Radiant 4-Point Guiding North Star (Astra) at Shield Crest -->
+    <path
+        android:fillColor="#E5A93C"
+        android:pathData="M 54,18 L 56.5,24.5 L 63,27 L 56.5,29.5 L 54,36 L 51.5,29.5 L 45,27 L 51.5,24.5 Z" />
+
+    <!-- Star Core Highlight in Crisp Ivory (#FAF7F2) -->
+    <path
+        android:fillColor="#FAF7F2"
+        android:pathData="M 54,23 L 55.2,25.8 L 58,27 L 55.2,28.2 L 54,31 L 52.8,28.2 L 50,27 L 52.8,25.8 Z" />
+
+</vector>
