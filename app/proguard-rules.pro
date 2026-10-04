@@ -15,12 +15,12 @@
 }
 -keep class com.squareup.moshi.** { *; }
 -keep interface com.squareup.moshi.** { *; }
--keep class com.example.data.** { *; }
--keep class com.example.domain.model.** { *; }
+-keep class com.justra.app.data.** { *; }
+-keep class com.justra.app.domain.model.** { *; }
 
 # Keep Retrofit Service interfaces and annotations
--keepclassmembers com.example.data.api.** { *; }
--keep interface com.example.data.api.** { *; }
+-keepclassmembers com.justra.app.data.api.** { *; }
+-keep interface com.justra.app.data.api.** { *; }
 -keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParameterAnnotations
 
 # Keep Room DAOs and Entities

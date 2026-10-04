@@ -12,7 +12,7 @@ plugins {
 }
 
 android {
-  namespace = "com.example"
+  namespace = "com.justra.app"
   compileSdk = 35
 
   defaultConfig {
@@ -71,7 +71,12 @@ android {
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("release")
     }
-    debug { signingConfig = signingConfigs.getByName("debugConfig") }
+    debug {
+      val debugKeyFile = file("${rootDir}/debug.keystore")
+      if (debugKeyFile.exists()) {
+        signingConfig = signingConfigs.getByName("debugConfig")
+      }
+    }
   }
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
