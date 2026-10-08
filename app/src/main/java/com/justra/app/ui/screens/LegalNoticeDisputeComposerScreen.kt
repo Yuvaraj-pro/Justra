@@ -3,6 +3,8 @@ package com.justra.app.ui.screens
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -25,6 +27,8 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.LocalShipping
+import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -64,6 +68,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
+import com.justra.app.data.local.CaseEntity
 import com.justra.app.domain.model.LanguagePreference
 import com.justra.app.ui.theme.DeepIndigoSlatePrimary
 import com.justra.app.ui.theme.PaleSandstoneVariant
@@ -73,9 +79,12 @@ import com.justra.app.ui.theme.SaffronAmberWarningText
 import com.justra.app.ui.theme.TerracottaAccentSecondary
 import com.justra.app.ui.theme.WarmIvorySurface
 import com.justra.app.ui.theme.nyayaOutlinedTextFieldColors
+import com.justra.app.util.PdfExporter
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -363,25 +372,88 @@ fun LegalNoticeDisputeComposerScreen(
 
                         Spacer(modifier = Modifier.height(14.dp))
 
-                        Button(
-                            onClick = {
-                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                val clip = ClipData.newPlainText("Legal Demand Notice", generatedNoticeText)
-                                clipboard.setPrimaryClip(clip)
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = if (isTa) "சட்டப்பூர்வ அறிவிப்பு நகலெடுக்கப்பட்டது" else "Legal Demand Notice copied to clipboard",
-                                        duration = SnackbarDuration.Short
-                                    )
-                                }
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = DeepIndigoSlatePrimary),
-                            shape = RoundedCornerShape(10.dp),
-                            modifier = Modifier.fillMaxWidth().testTag("copy_notice_btn")
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(if (isTa) "அறிவிப்பை நகலெடு (Copy Notice)" else "Copy Demand Notice")
+                            // Copy Button
+                            Button(
+                                onClick = {
+                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                    val clip = ClipData.newPlainText("Legal Demand Notice", generatedNoticeText)
+                                    clipboard.setPrimaryClip(clip)
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = if (isTa) "சட்டப்பூர்வ அறிவிப்பு நகலெடுக்கப்பட்டது" else "Legal Demand Notice copied to clipboard",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = DeepIndigoSlatePrimary),
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier.weight(1f).testTag("copy_notice_btn")
+                            ) {
+                                Icon(Icons.Default.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(if (isTa) "நகலெடு" else "Copy")
+                            }
+
+                            // Export PDF Button
+                            Button(
+                                onClick = {
+                                    // Create a temporary case entity for PDF generation
+                                    val tempCase = CaseEntity(
+                                        caseId = "notice_${UUID.randomUUID().toString().take(8)}",
+                                        title = "Legal Demand Notice - ${selectedNoticeType.take(30)}",
+                                        disputeCategory = com.justra.app.domain.model.DisputeCategory.CONSUMER_GRIEVANCE,
+                                        status = "DRAFT",
+                                        generatedComplaintDraft = generatedNoticeText,
+                                        createdAt = System.currentTimeMillis(),
+                                        updatedAt = System.currentTimeMillis()
+                                    )
+                                    PdfExporter.exportComplaintToPdf(
+                                        context = context,
+                                        caseEntity = tempCase,
+                                        complaintText = generatedNoticeText,
+                                        onSuccess = { file ->
+                                            // Share the generated PDF
+                                            val uri = FileProvider.getUriForFile(
+                                                context,
+                                                "${context.packageName}.fileprovider",
+                                                file
+                                            )
+                                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                                type = "application/pdf"
+                                                putExtra(Intent.EXTRA_STREAM, uri)
+                                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                            }
+                                            val chooser = Intent.createChooser(shareIntent, "Share Legal Notice PDF")
+                                            context.startActivity(chooser)
+                                            coroutineScope.launch {
+                                                snackbarHostState.showSnackbar(
+                                                    message = if (isTa) "PDF உருவாக்கப்பட்டு பகிருக்கப்படுகிறது" else "PDF generated and ready to share",
+                                                    duration = SnackbarDuration.Short
+                                                )
+                                            }
+                                        },
+                                        onError = { error ->
+                                            coroutineScope.launch {
+                                                snackbarHostState.showSnackbar(
+                                                    message = if (isTa) "PDF பிழை: $error" else "PDF Error: $error",
+                                                    duration = SnackbarDuration.Long
+                                                )
+                                            }
+                                        }
+                                    )
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = TerracottaAccentSecondary),
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier.weight(1f).testTag("export_pdf_btn")
+                            ) {
+                                Icon(Icons.Default.PictureAsPdf, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(if (isTa) "PDF ஏற்றுமதி" else "Export PDF")
+                            }
                         }
                     }
                 }

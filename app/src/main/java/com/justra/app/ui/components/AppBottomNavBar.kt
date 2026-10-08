@@ -62,14 +62,14 @@ fun AppBottomNavBar(
 
         // Hub 2: Voice & AI Assistant Intake
         NavigationBarItem(
-            selected = currentRoute == "voice_complaint" || currentRoute == Screen.VoiceComplaint.route || currentRoute == "chat_and_voice",
-            onClick = { onNavigateTo(Screen.VoiceComplaint.route) },
+            selected = currentRoute == "voice_intake" || currentRoute == "chat_and_voice",
+            onClick = { onNavigateTo("voice_intake") },
             icon = { Icon(Icons.Default.Mic, contentDescription = "Voice & AI", modifier = Modifier.size(22.dp)) },
             label = {
                 Text(
                     text = if (isTa) "குரல் & AI" else "Voice & AI",
                     fontSize = 11.sp,
-                    fontWeight = if (currentRoute == "voice_complaint") FontWeight.Bold else FontWeight.Medium
+                    fontWeight = if (currentRoute == "voice_intake") FontWeight.Bold else FontWeight.Medium
                 )
             },
             alwaysShowLabel = true,

@@ -38,7 +38,6 @@ fun MyCasesHubScreen(
     activeCases: List<CaseEntity>,
     userRole: UserRole,
     onToggleLanguage: () -> Unit,
-    onLockApp: () -> Unit,
     onNavigateToRoute: (String) -> Unit,
     onNavigateToActionNavigator: (caseId: String) -> Unit,
     onNavigateToComplaint: (caseId: String) -> Unit,
@@ -68,7 +67,7 @@ fun MyCasesHubScreen(
                 unreadNotifications = 0,
                 onToggleLanguage = onToggleLanguage,
                 onNotificationClick = { onNavigateToRoute("notifications_center") },
-                onLockClick = onLockApp
+                onSettingsClick = { onNavigateToRoute("account_settings") }
             )
         },
         bottomBar = {
@@ -86,7 +85,7 @@ fun MyCasesHubScreen(
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
                 text = {
                     Text(
-                        text = if (isTa) "+ புதிய வழக்கு" else "+ New Dispute",
+                        text = if (isTa) "புதிய வழக்கு" else "New Dispute",
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -145,7 +144,7 @@ fun MyCasesHubScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = if (isTa) "கீழே உள்ள '+ புதிய வழக்கு' பொத்தானை கிளிக் செய்து புதிய வழக்கு தொடங்கவும்." else "Tap '+ New Dispute' below to initiate a legal complaint file with step-by-step guidance.",
+                            text = if (isTa) "கீழே உள்ள 'புதிய வழக்கு' பொத்தானை கிளிக் செய்து புதிய வழக்கு தொடங்கவும்." else "Tap 'New Dispute' below to initiate a legal complaint file with step-by-step guidance.",
                             style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                         )
                     }

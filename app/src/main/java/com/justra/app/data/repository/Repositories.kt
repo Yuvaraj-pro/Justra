@@ -544,18 +544,28 @@ class EvidenceRepository(
     suspend fun addEvidenceArtifact(
         caseId: String,
         fileName: String,
-        fileUri: String,
-        mimeType: String,
+        fileBytes: ByteArray? = null,
+        mimeType: String? = null,
         category: EvidenceCategory,
         notes: String? = null
     ): EvidenceArtifactEntity {
-        val hash = securityManager.calculateSha256(fileName + fileUri + System.currentTimeMillis())
+        val hash = if (fileBytes != null && fileBytes.isNotEmpty()) {
+            securityManager.calculateStreamSha256(java.io.ByteArrayInputStream(fileBytes))
+        } else {
+            securityManager.calculateSha256(fileName + System.currentTimeMillis())
+        }
+        val fileUri = fileBytes?.let { bytes ->
+            // Save to app private storage
+            val file = java.io.File(securityManager.appContext.filesDir, fileName)
+            java.io.FileOutputStream(file).use { it.write(bytes) }
+            file.absolutePath
+        } ?: ""
         val artifact = EvidenceArtifactEntity(
             artifactId = UUID.randomUUID().toString(),
             caseId = caseId,
             fileName = fileName,
             fileUri = fileUri,
-            mimeType = mimeType,
+            mimeType = mimeType ?: "application/octet-stream",
             category = category,
             sha256Hash = hash,
             uploadTimestamp = System.currentTimeMillis(),

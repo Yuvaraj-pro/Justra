@@ -8,7 +8,7 @@ enum class LanguagePreference(val code: String, val displayName: String, val tam
     HINDI("hi_IN", "हिन्दी", "Hindi"),
     TELUGU("te_IN", "తెలుగు", "Telugu"),
     MALAYALAM("ml_IN", "മലയാളം", "Malayalam"),
-    KANNADA("kn_IN", "கன்னட / ಕನ್ನಡ", "Kannada")
+    KANNADA("kn_IN", "ಕನ್ನಡ", "Kannada")
 }
 
 enum class DisputeCategory(

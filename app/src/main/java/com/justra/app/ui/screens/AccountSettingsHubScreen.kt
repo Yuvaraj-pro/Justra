@@ -3,6 +3,8 @@ package com.justra.app.ui.screens
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -65,17 +67,21 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Text
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -131,11 +137,22 @@ fun AccountSettingsHubScreen(
     var showPinChangeDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
+    var showLegalDisclaimer by remember { mutableStateOf(false) }
+    var showPrivacyPolicy by remember { mutableStateOf(false) }
+    var showTermsOfService by remember { mutableStateOf(false) }
     var exportedJsonString by remember { mutableStateOf("") }
     var deleteConfirmationInput by remember { mutableStateOf("") }
     var newPinInput by remember { mutableStateOf("") }
     var confirmPinInput by remember { mutableStateOf("") }
     var pinVisibility by remember { mutableStateOf(false) }
+
+    // Check and show legal disclaimer on first launch
+    val disclaimerAccepted = remember { mutableStateOf(securityManager.isLegalDisclaimerAccepted()) }
+    LaunchedEffect(Unit) {
+        if (!disclaimerAccepted.value) {
+            showLegalDisclaimer = true
+        }
+    }
 
     val tamilNaduDistricts = listOf(
         "Chennai (சென்னை)",
@@ -975,8 +992,86 @@ fun AccountSettingsHubScreen(
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
-                            }
+}
+                }
+            }
+        }
+    }
+
+            // Section 6: Legal Disclaimer, Privacy Policy & Terms of Service
+            item {
+                SettingsSectionHeader(
+                    title = if (isTa) "6. சட்ட போதுமுறைகள், தனியுரிமை கொள்கை & பயன்பாட்டு விதிகள்" else "6. Legal Disclaimer, Privacy Policy & Terms of Service",
+                    icon = Icons.Default.Policy
+                )
+            }
+
+            item {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF3ECE1)),
+                    border = BorderStroke(1.dp, Color(0xFFD4CAB8)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        // Legal Disclaimer Button
+                        OutlinedButton(
+                            onClick = { showLegalDisclaimer = true },
+                            border = BorderStroke(1.dp, Color(0xFF0F1E36)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Default.Gavel, contentDescription = null, tint = Color(0xFF0F1E36))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (isTa) "சட்ட போதுமுறையை மறுபடியும் படிக்க (Re-read Legal Disclaimer)" else "Re-read Legal Disclaimer",
+                                color = Color(0xFF0F1E36)
+                            )
                         }
+
+                        HorizontalDivider(color = Color(0xFFD4CAB8))
+
+                        // Privacy Policy Button
+                        OutlinedButton(
+                            onClick = { showPrivacyPolicy = true },
+                            border = BorderStroke(1.dp, Color(0xFF0F1E36)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Default.Shield, contentDescription = null, tint = Color(0xFF0F1E36))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (isTa) "தனியுரிமை கொள்கையைப் படிக்க (Read Privacy Policy)" else "Read Privacy Policy",
+                                color = Color(0xFF0F1E36)
+                            )
+                        }
+
+                        HorizontalDivider(color = Color(0xFFD4CAB8))
+
+                        // Terms of Service Button
+                        OutlinedButton(
+                            onClick = { showTermsOfService = true },
+                            border = BorderStroke(1.dp, Color(0xFF0F1E36)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Default.Policy, contentDescription = null, tint = Color(0xFF0F1E36))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (isTa) "பயன்பாட்டு விதிகளைப் படிக்க (Read Terms of Service)" else "Read Terms of Service",
+                                color = Color(0xFF0F1E36)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = if (isTa)
+                                "Justra சட்ட ஆலோசனை வழங்காது. அனைத்து உள்ளடக்கும் தகவல் நோக்கங்களுக்காக மட்டுமே.唐kir trafic"
+                            else
+                                "Justra does not provide legal advice. All content is for informational purposes only. Links open in browser.",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = Color(0xFF4A4E57),
+                                fontStyle = FontStyle.Italic
+                            )
+                        )
                     }
                 }
             }
@@ -1226,6 +1321,193 @@ fun AccountSettingsHubScreen(
             containerColor = Color(0xFFFAF7F2)
         )
     }
+
+    // Dialog: Legal Disclaimer (shown on first launch and re-readable)
+    if (showLegalDisclaimer) {
+        AlertDialog(
+            onDismissRequest = { showLegalDisclaimer = false },
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(Icons.Default.Gavel, contentDescription = null, tint = Color(0xFF0F1E36))
+                    Text(
+                        text = if (isTa) "சட்ட போதுமுறை & சிறப்புத் தகவல்" else "Legal Disclaimer & Important Notice",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color(0xFF0F1E36))
+                    )
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.width(320.dp)) {
+                    Text(
+                        text = if (isTa)
+                            "முக்கியமான சட்ட தகவல்: Justra ஒரு சட்ட தகவல் வலையமைப்பு மற்றும் ஆவண சார்பு கருவியாகும், இது சட்ட ஆலோசனை, வழக்கு பிரதிநிதித்துவம் அல்லது தொழில்முறை சட்ட சேவைகளை வழங்கவில்லை. இந்தப் பயன்பாட்டில் வழங்கப்படும் அனைத்து தகவல்கள், வடிவமைப்புகள், கணக்கீடுகள் மற்றும் வழிகாட்டுதல்களும் பொதுவான தகவல் நோக்கங்களுக்காக மட்டுமே François-Saint-Justra-2024."
+                        else
+                            "IMPORTANT LEGAL NOTICE: Justra is a legal information network and document assistance tool. It does NOT provide legal advice, case representation, or professional legal services. All information, templates, calculations, and guidance provided in this application are for general informational purposes only.",
+                        style = MaterialTheme.typography.bodyMedium.copy(color = Color(0xFF14181F))
+                    )
+
+                    Text(
+                        text = if (isTa)
+                            "• Justra சட்ட உரிமையை முடிக்கும் முடிவை வழங்கவில்லை\n• தேவையானவை சிறப்பு உரிமை ஆலோசனைக்காகங்கள்\n• எந்த தவறான தகவல்களுக்கும் தற்செயலாகவில்லை\n• பயனர் தங்கள் சட்ட தேவைகளுக்காக அலுவலக வழிகாட்டியை அணுக வேண்டும்"
+                        else
+                            "• Justra does not establish an attorney-client relationship\n• Consult a qualified advocate for case-specific advice\n• No liability for errors, omissions, or outcomes\n• Users must engage licensed counsel for legal matters",
+                        style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFF4A4E57))
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Checkbox(
+                            checked = true,
+                            onCheckedChange = { _: Boolean -> },
+                            enabled = false
+                        )
+                        Text(
+                            text = if (isTa) "நான் இதைப் புரிந்துகொண்டேன் மற்றும் நிராகரிக்கிறேன் (I understand and accept)" else "I understand and accept this disclaimer",
+                            style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFF0F1E36))
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        securityManager.setLegalDisclaimerAccepted(true)
+                        showLegalDisclaimer = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F1E36)),
+                    modifier = Modifier.testTag("accept_disclaimer_button")
+                ) {
+                    Text(if (isTa) "ஏற்றுக்கொள் & தொடரவும் (Accept & Continue)" else "Accept & Continue")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLegalDisclaimer = false }) {
+                    Text(if (isTa) "பின்னர்" else "Later", color = Color(0xFF0F1E36))
+                }
+            },
+            containerColor = Color(0xFFFAF7F2)
+        )
+    }
+
+    // Dialog: Privacy Policy
+    if (showPrivacyPolicy) {
+        AlertDialog(
+            onDismissRequest = { showPrivacyPolicy = false },
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(Icons.Default.Shield, contentDescription = null, tint = Color(0xFF0F1E36))
+                    Text(
+                        text = if (isTa) "தனியுரிமை கொள்கை" else "Privacy Policy",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color(0xFF0F1E36))
+                    )
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.width(320.dp)) {
+                    Text(
+                        text = if (isTa)
+                            "Justra உங்கள் தனியுரிமையை மதிப்போம். இந்தப் பயன்பாடு உங்கள் சட்ட வழக்கு, ஆவணங்கள் மற்றும் பயோமெட்ரிக் தரவை உங்கள் சாதனில் மட்டுமே சேமிக்கிறது. எந்த விதமான தனிப்பட்ட தகவல்களும் வெளியCXR சேவைகளுக்கு, செய்யுள் மாதிரிகள் அல்லது üçüncü தரப்பினர்களுக்கு அனுப்பப்படவில்லை."
+                        else
+                            "Justra values your privacy. This app stores all your legal disputes, documents, and biometric data locally on your device only. No personal data is transmitted to external servers, AI models, or third parties.",
+                        style = MaterialTheme.typography.bodyMedium.copy(color = Color(0xFF14181F))
+                    )
+
+                    Text(
+                        text = if (isTa)
+                            "தரவு சேகரிப்பு:\n• வழக்கு விவரங்கள் (தலைப்பு, வகை, நிலை)\n• சேமிக்கப்பட்ட ஆவணங்கள் & சான்றுகள்\n• பயோமெட்ரிக் பாஸ் வடிவுயர்வு (விருப்பத்துக்கேற்ப)\n• மொழி & செயலி அமைப்பு விருப்பங்கள்\n\nதரவு பயன்பாடு:\n• உள்ளேγεν சிலை செல்லாத பயன்பாட்டு செயல்பாட்டுக்காக மட்டுமே\n• ஏதேனும் தொலைவு அல்லது obfuscated பகுப்பாய்விற்கும் இல்லை\n\nதரவு கட்டுப்பாடு:\n• நீங்கள் எந்த நேரமும் அனைத்து தரவையும் நீக்கலாம் (தொலைவு புறப்படுத்துதல்)\n• ஆவணங்களை JSON-ஆக ஏற்றுமதி செய்யலாம்\n• ஆஃப்‌லைன்-தனிமை இயங்கும்\n\nநிர்வாகப்பதிவுகள்: justra.app/privacy"
+                        else
+                            "Data Collected:\n• Case details (title, category, status)\n• Saved documents & evidence\n• Biometric vault PIN (optional)\n• Language & app preferences\n\nData Usage:\n• Local app functionality only\n• No remote analytics or telemetry\n\nData Control:\n• Delete all data anytime (Factory Reset)\n• Export encrypted dossier as JSON\n• Offline-first architecture\n\nFull Policy: justra.app/privacy",
+                        style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFF4A4E57))
+                    )
+
+                    Button(
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://justra.app/privacy"))
+                            context.startActivity(intent)
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F1E36)),
+                        modifier = Modifier.testTag("open_privacy_policy_link")
+                    ) {
+                        Text(if (isTa) "முழு கொள்கையைப் படிக்க (Open Full Policy)" else "Read Full Policy Online")
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showPrivacyPolicy = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F1E36))
+                ) {
+                    Text(if (isTa) "மூடு" else "Close")
+                }
+            },
+            containerColor = Color(0xFFFAF7F2)
+        )
+    }
+
+    // Dialog: Terms of Service
+    if (showTermsOfService) {
+        AlertDialog(
+            onDismissRequest = { showTermsOfService = false },
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(Icons.Default.Policy, contentDescription = null, tint = Color(0xFF0F1E36))
+                    Text(
+                        text = if (isTa) "பயன்பாட்டு விதிகள்" else "Terms of Service",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color(0xFF0F1E36))
+                    )
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.width(320.dp)) {
+                    Text(
+                        text = if (isTa)
+                            "Justra ஐப் பயன்படுத்துவதன் மூலம், நீங்கள் இந்த விதிகளை ஏற்றுக்கொள்கிறீர்கள்: இது சட்ட ஆலோசனை இல்லை, பயர் தவறுக்கோட்பட்ட தகவல்கள் இருக்கலாம், பயனர்கள் தங்கள் தரவுக்காக முழுமையாக பொறுப்புடையவர்கள், நீண்ட கட்டமைப்பு அமைப்புகள் அல்லது உண்மையான சட்ட வழக்குகளுக்கு மாற்றாக பயன்படுத்தக்கூடாது."
+                        else
+                            "By using Justra, you agree to these terms: This is not legal advice. Information may contain errors. Users are solely responsible for their data. This tool is not a substitute for licensed counsel or formal legal proceedings.",
+                        style = MaterialTheme.typography.bodyMedium.copy(color = Color(0xFF14181F))
+                    )
+
+                    Text(
+                        text = if (isTa)
+                            "முக்கிய விதிகள்:\n• சேவா வழங்கல்: \"எப்படி இருக்கிறதோ\" அதேபோல்\n• குறியாக்கம்: உங்கள் சாதனத்தில் உள்ள AES-256\n• வெளியேறுபவர்கள்: எந்த இருப்புத் தரவுக்கு அணுகல் இல்லை\n• பொறுப்பு வரம்பு: எந்த தீமைகளுக்குமான பொறுப்பு இல்லை\n• ஆட்சி சட்டம்: இந்தியச் சட்டம் (தமிழ்நாடு உரிமையகம்)\n\nமேலும் விவரங்கள்: justra.app/terms"
+                        else
+                            "Key Terms:\n• Service provided \"as is\"\n• Encryption: AES-256 on your device\n• No third-party data access\n• Liability limited to maximum extent\n• Governing law: India (Tamil Nadu jurisdiction)\n\nFull Terms: justra.app/terms",
+                        style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFF4A4E57))
+                    )
+
+                    Button(
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://justra.app/terms"))
+                            context.startActivity(intent)
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F1E36)),
+                        modifier = Modifier.testTag("open_terms_of_service_link")
+                    ) {
+                        Text(if (isTa) "முழு விதிகளைப் படிக்க (Open Full Terms)" else "Read Full Terms Online")
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showTermsOfService = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F1E36))
+                ) {
+                    Text(if (isTa) "மூடு" else "Close")
+                }
+            },
+            containerColor = Color(0xFFFAF7F2)
+        )
+    }
 }
 
 @Composable
@@ -1254,4 +1536,5 @@ private fun SettingsSectionHeader(
         )
     }
 }
+
 

@@ -26,8 +26,10 @@ import com.justra.app.domain.model.LanguagePreference
 import com.justra.app.domain.model.UserRole
 import com.justra.app.ui.components.AppBottomNavBar
 import com.justra.app.ui.components.CircularReadinessGauge
+import com.justra.app.ui.components.ConnectivityBanner
 import com.justra.app.ui.components.EmergencyHelplineBar
 import com.justra.app.ui.components.NyayaTopBar
+import com.justra.app.ui.components.OnlineStateObserver
 import com.justra.app.ui.theme.*
 import com.justra.app.util.BilingualStrings
 import kotlinx.coroutines.flow.SharedFlow
@@ -43,7 +45,6 @@ fun HomeScreen(
     documentFeedbackFlow: SharedFlow<String>? = null,
     onGenerateLegalDocument: ((title: String, category: DisputeCategory, onComplete: (String) -> Unit) -> Unit)? = null,
     onToggleLanguage: () -> Unit,
-    onLockApp: () -> Unit,
     onSwitchRole: (UserRole) -> Unit = {},
     onMarkNotificationRead: (String) -> Unit = {},
     onMarkAllNotificationsRead: () -> Unit = {},
@@ -63,7 +64,11 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     val isTa = currentLanguage == LanguagePreference.TAMIL
-
+    
+    // Connectivity State
+    var isOnline by remember { mutableStateOf(true) }
+    OnlineStateObserver(currentLanguage = currentLanguage, onStateChange = { isOnline = it })
+    
     Scaffold(
         topBar = {
             NyayaTopBar(
@@ -72,7 +77,7 @@ fun HomeScreen(
                 unreadNotifications = unreadNotificationsCount,
                 onToggleLanguage = onToggleLanguage,
                 onNotificationClick = { onNavigateToRoute?.invoke("notifications_center") },
-                onLockClick = onLockApp
+                onSettingsClick = { onNavigateToRoute?.invoke("account_settings") }
             )
         },
         bottomBar = {
@@ -93,6 +98,15 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(top = 16.dp, bottom = 80.dp)
         ) {
+            // Connectivity Banner (shows when offline)
+            item {
+                ConnectivityBanner(
+                    isOnline = isOnline,
+                    currentLanguage = currentLanguage,
+                    onRetry = { /* Trigger refresh */ }
+                )
+            }
+
             // Section 1: Hero Identity Banner
             item {
                 Card(

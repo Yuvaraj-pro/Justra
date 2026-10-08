@@ -23,10 +23,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Payment
 import androidx.compose.material.icons.filled.Photo
@@ -43,6 +46,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -50,6 +54,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -65,6 +70,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -87,6 +93,15 @@ import com.justra.app.ui.theme.TerracottaAccentSecondary
 import com.justra.app.ui.theme.WarmIvorySurface
 import com.justra.app.ui.theme.nyayaOutlinedTextFieldColors
 import kotlinx.coroutines.flow.Flow
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.security.MessageDigest
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -98,7 +113,7 @@ fun EvidenceVaultScreen(
     currentLanguage: LanguagePreference,
     caseEntity: CaseEntity?,
     artifactsFlow: Flow<List<EvidenceArtifactEntity>>,
-    onAddArtifact: (name: String, category: EvidenceCategory, notes: String?) -> Unit,
+    onAddArtifact: (name: String, category: EvidenceCategory, notes: String?, fileBytes: ByteArray?, mimeType: String?) -> Unit,
     onDeleteArtifact: (artifactId: String) -> Unit,
     onToggleLanguage: () -> Unit,
     onBackClick: () -> Unit,
@@ -121,6 +136,83 @@ fun EvidenceVaultScreen(
     val missingPayment = !presentCategories.contains(EvidenceCategory.PAYMENT_PROOF)
     val missingWritten = !presentCategories.contains(EvidenceCategory.WRITTEN_COMMUNICATION)
 
+    // Camera & Document Picker State
+    var selectedFileBytes by remember { mutableStateOf<ByteArray?>(null) }
+    var selectedMimeType by remember { mutableStateOf<String?>(null) }
+    var selectedFileName by remember { mutableStateOf<String?>(null) }
+    var showSourcePicker by remember { mutableStateOf(false) }
+    var showCameraPermissionDialog by remember { mutableStateOf(false) }
+    var showDocumentPicker by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+
+    // Calculate SHA-256 hash of file content
+    fun calculateFileSha256(bytes: ByteArray): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val hash = digest.digest(bytes)
+        return hash.joinToString("") { "%02x".format(it) }
+    }
+
+    // Save file to app private storage and return path
+    fun saveFileToPrivateStorage(bytes: ByteArray, fileName: String): String? {
+        return try {
+            val file = File(context.filesDir, fileName)
+            FileOutputStream(file).use { it.write(bytes) }
+            file.absolutePath
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    // Handle file selection result — declared BEFORE launchers that reference it
+    fun onFileSelected(uri: android.net.Uri, mimeType: String?) {
+        context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            val bytes = inputStream.readBytes()
+            val ext = when {
+                mimeType?.contains("image") == true -> ".jpg"
+                mimeType?.contains("pdf") == true -> ".pdf"
+                else -> ".bin"
+            }
+            val fileName = "evidence_${System.currentTimeMillis()}$ext"
+            selectedFileBytes = bytes
+            selectedMimeType = mimeType ?: "application/octet-stream"
+            selectedFileName = fileName
+            // Auto-fill artifact name from file name without extension
+            artifactName = fileName.removeSuffix(ext)
+            showAddDialog = true
+        }
+    }
+
+    // Activity Result Launchers (must be at top level of composable)
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            result.data?.extras?.get("data")?.let { bitmap ->
+                val bytes = ByteArrayOutputStream().apply {
+                    (bitmap as android.graphics.Bitmap).compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, this)
+                }.toByteArray()
+                val fileName = "photo_${System.currentTimeMillis()}.jpg"
+                selectedFileBytes = bytes
+                selectedMimeType = "image/jpeg"
+                selectedFileName = fileName
+                artifactName = "Camera Photo ${SimpleDateFormat("dd MMM HH:mm", Locale.getDefault()).format(Date())}"
+                showAddDialog = true
+            }
+        }
+    }
+
+    val documentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            result.data?.data?.let { uri ->
+                val mimeType = context.contentResolver.getType(uri)
+                onFileSelected(uri, mimeType)
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             NyayaTopBar(
@@ -133,7 +225,7 @@ fun EvidenceVaultScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showAddDialog = true },
+                onClick = { showSourcePicker = true },
                 containerColor = TerracottaAccentSecondary,
                 contentColor = Color.White,
                 shape = CircleShape,
@@ -207,7 +299,7 @@ fun EvidenceVaultScreen(
                     Surface(
                         shape = RoundedCornerShape(12.dp),
                         color = SaffronAmberWarningContainer,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, SaffronAmberWarningText.copy(alpha = 0.3f)),
+                        border = BorderStroke(1.dp, SaffronAmberWarningText.copy(alpha = 0.3f)),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
@@ -310,6 +402,122 @@ fun EvidenceVaultScreen(
         }
     }
 
+    // Source Picker Dialog (Camera vs Document)
+    if (showSourcePicker) {
+        AlertDialog(
+            onDismissRequest = { showSourcePicker = false },
+            title = {
+                Text(
+                    text = if (currentLanguage == LanguagePreference.TAMIL) "சான்று மூலத்தைத் தேர்வு செய்க" else "Select Evidence Source",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontFamily = FontFamily.Serif,
+                        fontWeight = FontWeight.Bold,
+                        color = DeepIndigoSlatePrimary
+                    )
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    // Camera Option
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp, horizontal = 4.dp)
+                            .clickable {
+                                showSourcePicker = false
+                                val intent = android.content.Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
+                                if (intent.resolveActivity(context.packageManager) != null) {
+                                    cameraLauncher.launch(intent)
+                                } else {
+                                    showCameraPermissionDialog = true
+                                }
+                            }
+                    ) {
+                        Icon(Icons.Default.CameraAlt, contentDescription = null, tint = DeepIndigoSlatePrimary, modifier = Modifier.size(24.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = if (currentLanguage == LanguagePreference.TAMIL) "கேமரா (புகைப்படம் எடுக்க)" else "Camera (Take Photo)",
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = DeepIndigoSlatePrimary)
+                            )
+                            Text(
+                                text = if (currentLanguage == LanguagePreference.TAMIL) "உடனடி புகைப்படம் அல்லது ஸ்கேன்" else "Instant photo or document scan",
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            )
+                        }
+                        Icon(Icons.Default.ArrowForward, contentDescription = null, tint = Color(0xFF4A4E57), modifier = Modifier.size(20.dp))
+                    }
+
+                    HorizontalDivider(color = Color(0xFF4A4E57).copy(alpha = 0.2f))
+
+                    // Document/File Picker Option
+                    OutlinedButton(
+                        onClick = {
+                            showSourcePicker = false
+                            val intent = android.content.Intent(android.content.Intent.ACTION_OPEN_DOCUMENT).apply {
+                                type = "*/*"
+                                addCategory(android.content.Intent.CATEGORY_OPENABLE)
+                                putExtra(android.content.Intent.EXTRA_MIME_TYPES, arrayOf("image/*", "application/pdf", "text/*", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"))
+                            }
+                            documentLauncher.launch(intent)
+                        },
+                        modifier = Modifier.fillMaxWidth().testTag("document_option_btn")
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        ) {
+                            Icon(Icons.Default.InsertDriveFile, contentDescription = null, tint = DeepIndigoSlatePrimary, modifier = Modifier.size(24.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (currentLanguage == LanguagePreference.TAMIL) "ஆவணம் / கோப்பு தேர்வு (PDF, Image, Doc)" else "Document / File Picker (PDF, Image, Doc)",
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = DeepIndigoSlatePrimary)
+                                )
+                                Text(
+                                    text = if (currentLanguage == LanguagePreference.TAMIL) "கொடுக்குள் சேமித்திருக்கும் ஆவணத்தைத் தேர்வு செய்க" else "Select existing files from device storage",
+                                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                )
+                            }
+                            Icon(Icons.Default.ArrowForward, contentDescription = null, tint = Color(0xFF4A4E57), modifier = Modifier.size(20.dp))
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showSourcePicker = false }) {
+                    Text(if (currentLanguage == LanguagePreference.TAMIL) "ரத்து" else "Cancel")
+                }
+            },
+            containerColor = WarmIvorySurface
+        )
+    }
+
+    // Camera Permission Dialog
+    if (showCameraPermissionDialog) {
+        AlertDialog(
+            onDismissRequest = { showCameraPermissionDialog = false },
+            title = { Text(if (currentLanguage == LanguagePreference.TAMIL) "கேமரா அனுமதி தேவை" else "Camera Permission Required") },
+            text = { Text(if (currentLanguage == LanguagePreference.TAMIL) "புகைப்படம் எடுக்க கேமரா அணுகல் அனுமதிக்கவும்." else "Please grant camera permission to capture photos.") },
+            confirmButton = {
+                Button(onClick = {
+                    showCameraPermissionDialog = false
+                    val intent = android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = android.net.Uri.parse("package:${context.packageName}")
+                    }
+                    context.startActivity(intent)
+                }) { Text(if (currentLanguage == LanguagePreference.TAMIL) "அனுமதி வழங்கு" else "Grant Permission") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCameraPermissionDialog = false }) { Text(if (currentLanguage == LanguagePreference.TAMIL) "ரத்து" else "Cancel") }
+            },
+            containerColor = WarmIvorySurface
+        )
+    }
+
     // Add Artifact Modal Dialog
     if (showAddDialog) {
         AlertDialog(
@@ -388,10 +596,23 @@ fun EvidenceVaultScreen(
                 Button(
                     onClick = {
                         val name = if (artifactName.isNotBlank()) artifactName else "Evidence Artifact"
-                        onAddArtifact(name, selectedCategory, artifactNotes.ifBlank { null })
+                        val fileHash = selectedFileBytes?.let { calculateFileSha256(it) }
+                        val filePath = selectedFileBytes?.let { bytes ->
+                            saveFileToPrivateStorage(bytes, selectedFileName ?: "evidence_${System.currentTimeMillis()}.bin")
+                        }
+                        onAddArtifact(
+                            name,
+                            selectedCategory,
+                            artifactNotes.ifBlank { null },
+                            selectedFileBytes,
+                            selectedMimeType
+                        )
                         showAddDialog = false
                         artifactName = ""
                         artifactNotes = ""
+                        selectedFileBytes = null
+                        selectedMimeType = null
+                        selectedFileName = null
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = DeepIndigoSlatePrimary),
                     modifier = Modifier.testTag("confirm_add_artifact_button")
@@ -427,7 +648,7 @@ private fun ArtifactCard(
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = PaleSandstoneVariant),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
         modifier = modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(14.dp)) {

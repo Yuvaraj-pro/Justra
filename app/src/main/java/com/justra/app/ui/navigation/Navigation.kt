@@ -100,7 +100,7 @@ object JustraDestinations {
     const val SMART_COMPLAINT = "smart_complaint/{caseId}"
     const val NEW_GRIEVANCE = "new_grievance"
     const val EVIDENCE_VAULT = "evidence_vault/{caseId}"
-    const val VOICE_COMPLAINT = "voice_complaint"
+    const val VOICE_INTAKE = "voice_intake"
     const val TIMELINE_READINESS = "timeline_readiness/{caseId}"
     const val SCAM_CHECKER = "scam_checker"
     const val COUNSEL_HANDOFF = "counsel_handoff/{caseId}"
@@ -119,10 +119,7 @@ object JustraDestinations {
     const val LIMITATION_REMINDERS = "limitation_reminders"
     const val GLOBAL_JURISDICTION = "global_jurisdiction"
     const val WORLD_WIDE_LAW = "world_wide_law"
-    const val VOICE_COMPLAINT_REGISTRATION = "voice_complaint_registration"
     const val CITIZENSHIP_LAWS = "citizenship_laws"
-    const val LEGAL_TOPIC_DETAIL = "legal_topic_detail/{topicId}"
-    const val VOICE_INTAKE = "voice_intake"
     const val BAIL_PREDICTOR = "bail_predictor"
     const val CHEQUE_BOUNCE_WIZARD = "cheque_bounce_wizard"
     const val CYBER_POSH_CELL = "cyber_posh_cell"
@@ -148,6 +145,8 @@ object JustraDestinations {
     const val SIM_FRAUD_TAFCOP = "sim_fraud_tafcop"
     const val ADOPTION_CARA_PROCESS = "adoption_cara_process"
     const val LITIGATION_COSTS_ESTIMATOR = "litigation_costs_estimator"
+    const val LEGAL_TOPIC_DETAIL = "legal_topic_detail/{topicId}"
+    const val VOICE_COMPLAINT_REGISTRATION = "voice_complaint_registration"
 }
 
 val NyayaMateDestinations = JustraDestinations
@@ -276,7 +275,6 @@ fun JustraNavGraph(
                     notifications = emptyList(),
                     unreadNotificationsCount = 0,
                     onToggleLanguage = { viewModel.toggleLanguage() },
-                    onLockApp = { viewModel.lockApp() },
                     onSwitchRole = { newRole -> viewModel.setUserRole(newRole) },
                     onNavigateToRoute = { route -> navController.navigate(route) },
                     onNavigateToChat = { navController.navigate("chat") },
@@ -288,7 +286,7 @@ fun JustraNavGraph(
                     onNavigateToScamChecker = { navController.navigate(JustraDestinations.SCAM_CHECKER) },
                     onNavigateToCounselHandoff = { caseId -> navController.navigate("counsel_handoff/$caseId") },
                     onTopicClick = { categoryKey -> navController.navigate("sub_topic_detail/$categoryKey") },
-                    onNavigateToVoice = { navController.navigate("voice_complaint") },
+                    onNavigateToVoice = { navController.navigate(JustraDestinations.VOICE_INTAKE) },
                     onCreateNewDispute = { _, _, _, _, _, _, _, _ -> navController.navigate(JustraDestinations.NEW_GRIEVANCE) },
                     onDialHelpline = { number -> com.justra.app.util.ActionUtils.dialEmergencyHelpline(context, number) }
                 )
@@ -419,7 +417,7 @@ fun JustraNavGraph(
                     currentLanguage = language,
                     caseEntity = caseEntity,
                     artifactsFlow = artifactsFlow,
-                    onAddArtifact = { name, category, notes -> viewModel.addEvidenceArtifact(caseId, name, category, notes) },
+                    onAddArtifact = { name, category, notes, fileBytes, mimeType -> viewModel.addEvidenceArtifact(caseId, name, category, notes, fileBytes, mimeType) },
                     onDeleteArtifact = { artifactId -> viewModel.deleteArtifactById(artifactId) },
                     onToggleLanguage = { viewModel.toggleLanguage() },
                     onBackClick = { navController.popBackStack() }
@@ -544,7 +542,6 @@ fun JustraNavGraph(
                     activeCases = activeCases,
                     userRole = userRole,
                     onToggleLanguage = { viewModel.toggleLanguage() },
-                    onLockApp = { viewModel.lockApp() },
                     onNavigateToRoute = { route -> navController.navigate(route) },
                     onNavigateToActionNavigator = { caseId -> navController.navigate("action_navigator/$caseId") },
                     onNavigateToComplaint = { caseId -> navController.navigate("complaint_generator/$caseId") },
@@ -570,7 +567,6 @@ fun JustraNavGraph(
                 StatutoryToolsHubScreen(
                     currentLanguage = language,
                     onToggleLanguage = { viewModel.toggleLanguage() },
-                    onLockApp = { viewModel.lockApp() },
                     onNavigateToRoute = { route -> navController.navigate(route) },
                     onSelectTopic = { categoryKey -> navController.navigate("sub_topic_detail/$categoryKey") }
                 )
@@ -622,29 +618,7 @@ fun JustraNavGraph(
                 )
             }
 
-            composable("voice_complaint") {
-                VoiceComplaintRegistrationScreen(
-                    onNavigateBack = { navController.popBackStack() },
-                    onCaseCreated = { caseId ->
-                        navController.navigate("action_navigator/$caseId") {
-                            popUpTo(JustraDestinations.HOME)
-                        }
-                    }
-                )
-            }
-
-            composable("voice_intake") {
-                VoiceComplaintRegistrationScreen(
-                    onNavigateBack = { navController.popBackStack() },
-                    onCaseCreated = { caseId ->
-                        navController.navigate("action_navigator/$caseId") {
-                            popUpTo(JustraDestinations.HOME)
-                        }
-                    }
-                )
-            }
-
-            composable(JustraDestinations.VOICE_COMPLAINT_REGISTRATION) {
+            composable(JustraDestinations.VOICE_INTAKE) {
                 VoiceComplaintRegistrationScreen(
                     onNavigateBack = { navController.popBackStack() },
                     onCaseCreated = { caseId ->
@@ -712,7 +686,7 @@ fun JustraNavGraph(
                     currentLanguage = language,
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToVoice = { _ ->
-                        navController.navigate(Screen.VoiceComplaint.route)
+                        navController.navigate(JustraDestinations.VOICE_INTAKE)
                     }
                 )
             }

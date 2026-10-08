@@ -10,7 +10,6 @@ sealed class Screen(val route: String) {
     data object Landing : Screen("landing")
     data object Auth : Screen("auth")
     data object Home : Screen("home")
-    data object VoiceComplaint : Screen("voice_complaint")
     data object VoiceIntake : Screen("voice_intake")
     data object ChatAndVoice : Screen("chat")
     data object MyCasesHub : Screen("my_cases_hub")

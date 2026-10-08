@@ -4,12 +4,15 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.justra.app.domain.model.LanguagePreference
 import java.io.InputStream
+// Charsets is available via kotlin.text.Charsets (no import needed in Kotlin stdlib)
 import java.security.MessageDigest
 import java.util.UUID
 
 class SecurityManager(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences("justra_secure_vault_prefs", Context.MODE_PRIVATE)
+
+    val appContext: Context = context.applicationContext
 
     companion object {
         private const val KEY_LANG = "pref_user_language"
@@ -33,6 +36,7 @@ class SecurityManager(context: Context) {
         private const val KEY_SELECTED_JURISDICTION = "pref_selected_jurisdiction_code"
         private const val KEY_LAST_BACKGROUND_TIMESTAMP = "pref_last_background_timestamp"
         private const val KEY_LAST_ACTIVE_TIMESTAMP = "pref_last_active_timestamp"
+        private const val KEY_LEGAL_DISCLAIMER_ACCEPTED = "pref_legal_disclaimer_accepted"
     }
 
     fun recordAppBackgrounded(timestamp: Long = System.currentTimeMillis()) {
@@ -107,7 +111,7 @@ class SecurityManager(context: Context) {
     }
 
     fun getSelectedDistrict(): String {
-        return prefs.getString(KEY_SELECTED_DISTRICT, "Chennai (சென்னை)") ?: "Chennai (சென்னை)"
+        return prefs.getString(KEY_SELECTED_DISTRICT, "") ?: ""
     }
 
     fun setSelectedDistrict(district: String) {
@@ -115,7 +119,7 @@ class SecurityManager(context: Context) {
     }
 
     fun getAdvocateEnrollmentId(): String {
-        return prefs.getString(KEY_ADVOCATE_ENROLL_ID, "MS/1842/2019") ?: "MS/1842/2019"
+        return prefs.getString(KEY_ADVOCATE_ENROLL_ID, "") ?: ""
     }
 
     fun setAdvocateEnrollmentId(id: String) {
@@ -197,6 +201,14 @@ class SecurityManager(context: Context) {
         prefs.edit().putLong(KEY_STATUTORY_CONSENT, System.currentTimeMillis()).apply()
     }
 
+    fun isLegalDisclaimerAccepted(): Boolean {
+        return prefs.getBoolean(KEY_LEGAL_DISCLAIMER_ACCEPTED, false)
+    }
+
+    fun setLegalDisclaimerAccepted(accepted: Boolean) {
+        prefs.edit().putBoolean(KEY_LEGAL_DISCLAIMER_ACCEPTED, accepted).apply()
+    }
+
     fun getStatutoryConsentTimestamp(): Long {
         return prefs.getLong(KEY_STATUTORY_CONSENT, 0L)
     }
@@ -218,7 +230,7 @@ class SecurityManager(context: Context) {
     }
 
     fun getUserDisplayName(): String {
-        return prefs.getString(KEY_USER_DISPLAY_NAME, "Citizen User") ?: "Citizen User"
+        return prefs.getString(KEY_USER_DISPLAY_NAME, "") ?: ""
     }
 
     fun setUserDisplayName(name: String) {
@@ -226,7 +238,7 @@ class SecurityManager(context: Context) {
     }
 
     fun getUserPhoneNumber(): String {
-        return prefs.getString(KEY_USER_PHONE, "+91 98765 43210") ?: "+91 98765 43210"
+        return prefs.getString(KEY_USER_PHONE, "") ?: ""
     }
 
     fun setUserPhoneNumber(phone: String) {

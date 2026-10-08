@@ -430,28 +430,72 @@ fun NotificationsRemindersCenterScreen(
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.NotificationsActive,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                            modifier = Modifier.size(56.dp)
-                        )
-                        Text(
-                            text = if (isTa) "அறிவிப்புகள் எதுவும் இல்லை" else "No matching notifications found",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = DeepIndigoSlatePrimary
+                        Card(
+                            shape = RoundedCornerShape(24.dp),
+                            colors = CardDefaults.cardColors(containerColor = PaleSandstoneVariant),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
+                            modifier = Modifier.size(120.dp)
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.padding(24.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.NotificationsActive,
+                                    contentDescription = null,
+                                    tint = DeepIndigoSlatePrimary.copy(alpha = 0.6f),
+                                    modifier = Modifier.size(48.dp)
+                                )
+                            }
+                        }
+
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = if (isTa) "அறிவிப்புகள் இல்லை" else "No Notifications Yet",
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = DeepIndigoSlatePrimary
+                                )
                             )
-                        )
-                        Text(
-                            text = if (isTa) "அனைத்து சட்ட காலக்கெடுகளும் சரியாக உள்ளன அல்லது தேடல் முடிவுகள் இல்லை." else "All statutory timelines are up to date, or clear your active search query.",
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            ),
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                        )
+                            Text(
+                                text = if (isTa)
+                                    "நீங்கள் வழக்குகள் உருவாக்கவும், நினைவூட்டல்கள் அமைக்கவும், அல்லது சட்ட நடவடிக்கைகள் எடுக்கும்போது, இங்கு அண்மை தகவல்கள் தோன்றும்."
+                                else
+                                    "Notifications will appear here when you create cases, set statutory reminders, or take legal actions. Tap the + button below to schedule your first reminder.",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                ),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                maxLines = 4
+                            )
+                        }
+
+                        // Helpful action hint
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = PrimaryContainerSlate,
+                            border = BorderStroke(1.dp, DeepIndigoSlatePrimary.copy(alpha = 0.2f)),
+                            modifier = Modifier.padding(horizontal = 24.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Icon(Icons.Default.Info, contentDescription = null, tint = DeepIndigoSlatePrimary, modifier = Modifier.size(20.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = if (isTa) "முடிவு: சட்ட காலக்கெடுகளுக்கான நினைவூட்டல்கள் அமைக்க + பொத்தானை பயன்படுத்தவும்" else "Tip: Use the + button to set statutory deadline reminders",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontWeight = FontWeight.Medium,
+                                            color = DeepIndigoSlatePrimary
+                                        )
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             } else {

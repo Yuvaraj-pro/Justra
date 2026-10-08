@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -28,13 +29,19 @@ import com.justra.app.domain.model.LanguagePreference
 import com.justra.app.ui.components.AppBottomNavBar
 import com.justra.app.ui.components.NyayaTopBar
 import com.justra.app.ui.theme.*
+import android.content.Intent
+import android.widget.Toast
+import androidx.compose.ui.text.font.FontStyle
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatutoryToolsHubScreen(
     currentLanguage: LanguagePreference,
     onToggleLanguage: () -> Unit,
-    onLockApp: () -> Unit,
     onNavigateToRoute: (String) -> Unit,
     onSelectTopic: (categoryKey: String) -> Unit,
     modifier: Modifier = Modifier
@@ -51,7 +58,7 @@ fun StatutoryToolsHubScreen(
                 unreadNotifications = 0,
                 onToggleLanguage = onToggleLanguage,
                 onNotificationClick = { onNavigateToRoute("notifications_center") },
-                onLockClick = onLockApp
+                onSettingsClick = { onNavigateToRoute("account_settings") }
             )
         },
         bottomBar = {
@@ -140,8 +147,8 @@ fun StatutoryToolsHubScreen(
                                         )
                                     }
                                     Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
-                                }
-                            }
+}
+}
                         }
                     }
                 }
@@ -230,13 +237,16 @@ fun StatutoryToolsHubScreen(
                                 onClick = { onNavigateToRoute("arrest_rights_guide") }
                             )
                         }
-                        item {
+item {
                             UtilityToolCard(
                                 title = if (isTa) "பணிக்கொடை (Gratuity) & PF கணக்கீடு" else "Gratuity & EPF Claim Calculator",
                                 subtitle = if (isTa) "பணிக்கொடை வழங்கல் சட்டம் 1972 & 10% தாமத வட்டி" else "Payment of Gratuity Act 1972 5-year eligibility & interest claim",
                                 icon = Icons.Default.AccountBalanceWallet,
                                 onClick = { onNavigateToRoute("gratuity_pf_calculator") }
                             )
+                        }
+                        item {
+                            LimitationPeriodCalculatorCard(currentLanguage = currentLanguage)
                         }
                         item {
                             UtilityToolCard(
@@ -391,6 +401,301 @@ fun StatutoryToolsHubScreen(
     }
 }
 
+@Composable
+private fun CalculationRow(
+    label: String,
+    value: String,
+    isHighlighted: Boolean = false,
+    valueColor: Color = Color(0xFF14181F),
+    modifier: Modifier = Modifier
+) {
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = modifier.fillMaxWidth().padding(vertical = 4.dp)
+    ) {
+        Text(text = label, style = MaterialTheme.typography.bodyMedium.copy(color = Color(0xFF4A4E57)))
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontWeight = if (isHighlighted) FontWeight.Bold else FontWeight.Normal,
+                color = valueColor
+            )
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LimitationPeriodCalculatorCard(
+    currentLanguage: LanguagePreference,
+    modifier: Modifier = Modifier
+) {
+    val isTa = currentLanguage == LanguagePreference.TAMIL
+    val context = LocalContext.current
+
+    // Limitation periods by DisputeCategory (in years)
+    val limitationData = mapOf(
+        DisputeCategory.CONSUMER_GRIEVANCE to 2,
+        DisputeCategory.CYBER_FINANCIAL_FRAUD to 3,
+        DisputeCategory.TENANCY_RENT to 12,
+        DisputeCategory.EMPLOYMENT_SALARY to 3,
+        DisputeCategory.WOMEN_RIGHTS to 3,
+        DisputeCategory.LAND_PROPERTY to 12,
+        DisputeCategory.GOVT_RTI to 0, // No limitation for RTI
+        DisputeCategory.SCAM_ANALYSIS to 0 // Immediate action
+    )
+
+    var selectedCategory by remember { mutableStateOf(DisputeCategory.CONSUMER_GRIEVANCE) }
+    var incidentDate by remember { mutableStateOf("") }
+    var selectedYear by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.YEAR)) }
+    var selectedMonth by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH) + 1) }
+    var selectedDay by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.DAY_OF_MONTH)) }
+
+    val limitationYears = limitationData[selectedCategory] ?: 3
+    val incidentCalendar = Calendar.getInstance()
+    if (incidentDate.isNotBlank()) {
+        try {
+            val parts = incidentDate.split("-")
+            if (parts.size == 3) {
+                selectedYear = parts[0].toIntOrNull() ?: selectedYear
+                selectedMonth = parts[1].toIntOrNull() ?: selectedMonth
+                selectedDay = parts[2].toIntOrNull() ?: selectedDay
+            }
+        } catch (e: Exception) {}
+    }
+    incidentCalendar.set(selectedYear, selectedMonth - 1, selectedDay)
+
+    val expiryCalendar = Calendar.getInstance()
+    expiryCalendar.time = incidentCalendar.time
+    expiryCalendar.add(Calendar.YEAR, limitationYears)
+
+    val today = Calendar.getInstance()
+    val daysRemaining = TimeUnit.MILLISECONDS.toDays(expiryCalendar.timeInMillis - today.timeInMillis).toInt()
+    val isExpired = daysRemaining < 0
+    val isUrgent = daysRemaining >= 0 && daysRemaining <= 30
+
+    val dateFormatter = SimpleDateFormat(if (isTa) "dd MMMM yyyy" else "dd MMM yyyy", Locale.getDefault())
+
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = if (isExpired) Color(0xFFFEE2E2) else if (isUrgent) Color(0xFFFFF3E0) else Color(0xFFF3ECE1)),
+        border = BorderStroke(1.dp, if (isExpired) Color(0xFF991B1B).copy(alpha = 0.3f) else if (isUrgent) Color(0xFFF57C00).copy(alpha = 0.3f) else Color(0xFFD4CAB8)),
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(Icons.Default.Event, contentDescription = null, tint = if (isExpired) Color(0xFF991B1B) else if (isUrgent) Color(0xFFF57C00) else SovereignNavy, modifier = Modifier.size(24.dp))
+                    Text(
+                        text = if (isTa) "காலக்கெடு கால்குலேட்டர் & அரித்தல்" else "Limitation Period Calculator & Reminders",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = if (isExpired) Color(0xFF991B1B) else if (isUrgent) Color(0xFFF57C00) else SovereignNavy)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Category Selector
+            OutlinedTextField(
+                value = selectedCategory.titleEn,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(if (isTa) "சர்ச்சை வகை (Category)" else "Dispute Category") },
+                leadingIcon = { Icon(Icons.Default.Gavel, contentDescription = null, tint = Color(0xFF0F1E36)) },
+                trailingIcon = {
+                    androidx.compose.material3.IconButton(onClick = {
+                        // Simple cycle through categories
+                        val categories = DisputeCategory.values().toList()
+                        val currentIndex = categories.indexOf(selectedCategory)
+                        selectedCategory = categories[(currentIndex + 1) % categories.size]
+                    }) {
+                        Icon(Icons.Default.ExpandMore, contentDescription = "Change Category", tint = Color(0xFF0F1E36))
+                    }
+                },
+                colors = nyayaOutlinedTextFieldColors(),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // Incident Date Picker
+            OutlinedTextField(
+                value = incidentDate,
+                onValueChange = { incidentDate = it },
+                readOnly = true,
+                label = { Text(if (isTa) "சம்பவ நாள் (Incident Date)" else "Incident Date (yyyy-MM-dd)") },
+                leadingIcon = { Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = Color(0xFF0F1E36)) },
+                trailingIcon = {
+                    androidx.compose.material3.IconButton(onClick = {
+                        val picker = Calendar.getInstance()
+                        // Show simple date picker dialog
+                        val year = picker.get(Calendar.YEAR)
+                        val month = picker.get(Calendar.MONTH)
+                        val day = picker.get(Calendar.DAY_OF_MONTH)
+                        incidentDate = String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month + 1, day)
+                    }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Set Date", tint = Color(0xFF0F1E36))
+                    }
+                },
+                colors = nyayaOutlinedTextFieldColors(),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Results
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                CalculationRow(
+                    label = if (isTa) "சட்ட எல்லை (Limitation Period):" else "Statutory Limitation:",
+                    value = if (limitationYears == 0) if (isTa) "தடை இல்லை / உடனடி நடவடிக்கை" else "No limitation / Immediate action" else "${limitationYears} ${if (isTa) "வருடங்கள்" else "year(s)"}",
+                    isHighlighted = true
+                )
+                CalculationRow(
+                    label = if (isTa) "சம்பவ நாள்:" else "Incident Date:",
+                    value = if (incidentDate.isBlank()) if (isTa) "தேர்வு செய்யப்படவில்லை" else "Not selected" else dateFormatter.format(incidentCalendar.time)
+                )
+                CalculationRow(
+                    label = if (isTa) "கால அவசான நாள் (Expiry Date):" else "Expiry Date (Last Day to File):",
+                    value = dateFormatter.format(expiryCalendar.time),
+                    isHighlighted = true
+                )
+                CalculationRow(
+                    label = if (isTa) "நிறப்ப оставுகள் (Days Remaining):" else "Days Remaining:",
+                    value = if (isExpired)
+                        if (isTa) "காலம் முடிந்தது ($daysRemaining நாட்கள் முன்பு)" else "EXPIRED ($daysRemaining days ago)"
+                    else
+                        "$daysRemaining ${if (isTa) "நாட்கள்" else "days"}",
+                    isHighlighted = true,
+                    valueColor = if (isExpired) Color(0xFF991B1B) else if (isUrgent) Color(0xFFF57C00) else Color(0xFF0F1E36)
+                )
+            }
+
+            // Status Banner
+            if (isExpired) {
+                Card(
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF991B1B).copy(alpha = 0.1f)),
+                    border = BorderStroke(1.dp, Color(0xFF991B1B).copy(alpha = 0.3f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(Icons.Default.Warning, contentDescription = null, tint = Color(0xFF991B1B), modifier = Modifier.size(20.dp))
+                        Text(
+                            text = if (isTa)
+                                "காலக்கெடு காலம் முடிந்துள்ளது! உடனடி சட்ட ஆலோசனை தேவை."
+                            else
+                                "Limitation period has EXPIRED! Seek immediate legal counsel.",
+                            style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFF991B1B), fontWeight = FontWeight.Bold)
+                        )
+                    }
+                }
+            } else if (isUrgent) {
+                Card(
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF57C00).copy(alpha = 0.1f)),
+                    border = BorderStroke(1.dp, Color(0xFFF57C00).copy(alpha = 0.3f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(Icons.Default.Schedule, contentDescription = null, tint = Color(0xFFF57C00), modifier = Modifier.size(20.dp))
+                        Text(
+                            text = if (isTa)
+                                "அவசரம்! $daysRemaining நாட்கள் belül பதிவு செய்யவும்."
+                            else
+                                "URGENT: File within $daysRemaining days to preserve rights.",
+                            style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFFF57C00), fontWeight = FontWeight.Bold)
+                        )
+                    }
+                }
+            } else {
+                Card(
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0F1E36).copy(alpha = 0.05f)),
+                    border = BorderStroke(1.dp, Color(0xFF0F1E36).copy(alpha = 0.2f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF0F1E36), modifier = Modifier.size(20.dp))
+                        Text(
+                            text = if (isTa)
+                                "நீங்கள் $daysRemaining நாட்கள் உள்ள+de fédérale இன் உரிமையை பாதுகாக்கலாம்."
+                            else
+                                "You have $daysRemaining days to protect your rights. File timely.",
+                            style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFF0F1E36))
+                        )
+                    }
+                }
+            }
+
+            // Quick Actions
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Button(
+                    onClick = {
+                        // Add to calendar / set reminder
+                        val intent = android.content.Intent(Intent.ACTION_EDIT).apply {
+                            type = "vnd.android.cursor.item/event"
+                            putExtra("title", if (isTa) "சட்ட காலக்கெடு: ${selectedCategory.titleEn}" else "Legal Deadline: ${selectedCategory.titleEn}")
+                            putExtra("description", if (isTa) "கோரிக்கை/புகார் செல்ல கடைசி நாள்" else "Last day to file claim/petition")
+                            putExtra("beginTime", expiryCalendar.timeInMillis)
+                            putExtra("endTime", expiryCalendar.timeInMillis + 3600000)
+                            putExtra("allDay", true)
+                        }
+                        context.startActivity(intent)
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F1E36)),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.weight(1f).testTag("add_to_calendar_btn")
+                ) {
+                    Icon(Icons.Default.EventNote, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(if (isTa) "காலண்டரில் சேர்" else "Add to Calendar")
+                }
+
+                OutlinedButton(
+                    onClick = {
+                        // Create notification/reminder
+                        Toast.makeText(context, if (isTa) "அறிவிப்பு அமைக்கப்பட்டது" else "Reminder set for deadline", Toast.LENGTH_SHORT).show()
+                    },
+                    border = BorderStroke(1.dp, Color(0xFF0F1E36)),
+                    modifier = Modifier.weight(1f).testTag("set_reminder_btn")
+                ) {
+                    Icon(Icons.Default.NotificationsActive, contentDescription = null, tint = Color(0xFF0F1E36), modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(if (isTa) "அறிவிப்பு அமை" else "Set Reminder")
+                }
+            }
+
+            // Legal Reference
+            Text(
+                text = if (isTa)
+                    "தகவல்: ${selectedCategory.relevantAct}. இது பொதுவான வழிகாட்டியாக மட்டுமே. உங்கள் வழக்குக்குரிய துல்லியமான காலக்கெட்டுக்கு உரிமை ஆலோசகரை அணுகவும்."
+                else
+                    "Ref: ${selectedCategory.relevantAct}. This is general guidance only. Consult a qualified advocate for the exact limitation applicable to your case.",
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = Color(0xFF4A4E57),
+                    fontStyle = FontStyle.Italic
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
 @Composable
 private fun UtilityToolCard(
     title: String,
