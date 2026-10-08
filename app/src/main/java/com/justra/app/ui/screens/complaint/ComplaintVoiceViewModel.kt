@@ -275,7 +275,8 @@ class ComplaintVoiceViewModel(application: Application) : AndroidViewModel(appli
                     ),
                     generationConfig = GeminiGenerationConfig(
                         temperature = 0.2f,
-                        maxOutputTokens = 2048
+                        maxOutputTokens = 2048,
+                        responseMimeType = "application/json"
                     )
                 )
 

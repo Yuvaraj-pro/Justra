@@ -203,6 +203,7 @@ class JustraViewModel(application: Application) : AndroidViewModel(application) 
 
     val audioRecorderHelper = com.justra.app.ui.voice.AudioRecorderHelper(application)
     val voiceInputManager = com.justra.app.ui.voice.VoiceInputManager(application)
+    val liveTranscript: StateFlow<String> = voiceInputManager.liveTranscript
     private var recordingJob: Job? = null
 
     // Scam checker state
@@ -221,6 +222,10 @@ class JustraViewModel(application: Application) : AndroidViewModel(application) 
 
     private val _lastGeneratedPdf = MutableStateFlow<File?>(null)
     val lastGeneratedPdf: StateFlow<File?> = _lastGeneratedPdf.asStateFlow()
+
+    fun setRole(role: UserRole) {
+        setUserRole(role)
+    }
 
     fun setLanguage(newLanguage: LanguagePreference) {
         _language.value = newLanguage

@@ -45,6 +45,7 @@ import com.justra.app.ui.screens.NalsaFreeLegalAidScreen
 import com.justra.app.ui.screens.NewGrievanceScreen
 import com.justra.app.ui.screens.NotificationsRemindersCenterScreen
 import com.justra.app.ui.screens.OnboardingScreen
+import com.justra.app.ui.screens.PermissionsSetupScreen
 import com.justra.app.ui.screens.PinAuthScreen
 import com.justra.app.ui.screens.RtiDraftingWizardScreen
 import com.justra.app.ui.screens.ScamCheckerScreen
@@ -89,6 +90,7 @@ import com.justra.app.ui.viewmodel.JustraViewModel
 object JustraDestinations {
     const val SPLASH = "splash"
     const val ONBOARDING = "onboarding"
+    const val PERMISSIONS_SETUP = "permissions_setup"
     const val LANDING = "landing"
     const val AUTH = "auth"
     const val LANGUAGE_CONSENT = "language_consent"
@@ -214,8 +216,19 @@ fun JustraNavGraph(
             composable(JustraDestinations.ONBOARDING) {
                 OnboardingScreen(
                     onOnboardingFinished = {
-                        navController.navigate(JustraDestinations.LANDING) {
+                        navController.navigate(JustraDestinations.PERMISSIONS_SETUP) {
                             popUpTo(JustraDestinations.ONBOARDING) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            composable(JustraDestinations.PERMISSIONS_SETUP) {
+                PermissionsSetupScreen(
+                    currentLanguage = language,
+                    onPermissionsFinished = {
+                        navController.navigate(JustraDestinations.LANDING) {
+                            popUpTo(JustraDestinations.PERMISSIONS_SETUP) { inclusive = true }
                         }
                     }
                 )
@@ -317,6 +330,7 @@ fun JustraNavGraph(
                 val chatMessages by viewModel.chatMessages.collectAsState(initial = emptyList())
                 val recordingState by viewModel.recordingState.collectAsState()
                 val audioWaveforms by viewModel.audioWaveforms.collectAsState()
+                val liveTranscript by viewModel.liveTranscript.collectAsState()
 
                 ChatAssistantScreen(
                     currentLanguage = language,
@@ -324,6 +338,7 @@ fun JustraNavGraph(
                     recordingState = recordingState,
                     audioWaveforms = audioWaveforms,
                     initialPrompt = prompt,
+                    liveTranscript = liveTranscript,
                     onSendMessage = { text -> viewModel.sendChatMessage(text) },
                     onStartRecording = { viewModel.startVoiceRecording() },
                     onStopRecording = { viewModel.stopVoiceRecordingAndSubmit() },

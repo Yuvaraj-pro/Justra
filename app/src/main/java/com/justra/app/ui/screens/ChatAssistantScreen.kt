@@ -86,6 +86,7 @@ fun ChatAssistantScreen(
     recordingState: AudioRecordingState,
     audioWaveforms: List<Float>,
     initialPrompt: String?,
+    liveTranscript: String = "",
     onSendMessage: (String) -> Unit,
     onStartRecording: () -> Unit,
     onStopRecording: () -> Unit,
@@ -97,6 +98,12 @@ fun ChatAssistantScreen(
 ) {
     var textInput by remember { mutableStateOf(initialPrompt ?: "") }
     val listState = rememberLazyListState()
+
+    LaunchedEffect(liveTranscript) {
+        if (liveTranscript.isNotBlank()) {
+            textInput = liveTranscript
+        }
+    }
 
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {

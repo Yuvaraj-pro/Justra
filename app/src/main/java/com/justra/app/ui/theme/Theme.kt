@@ -216,19 +216,21 @@ fun justraOutlinedTextFieldColors(): androidx.compose.material3.TextFieldColors 
     nyayaOutlinedTextFieldColors()
 
 @Composable
-fun nyayaOutlinedTextFieldColors(): androidx.compose.material3.TextFieldColors =
-    androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-        focusedTextColor = Color(0xFF14181F),
-        unfocusedTextColor = Color(0xFF14181F),
-        focusedContainerColor = Color(0xFFF3ECE1),
-        unfocusedContainerColor = Color(0xFFF3ECE1),
-        cursorColor = Color(0xFF0F1E36),
-        focusedBorderColor = Color(0xFF0F1E36),
-        unfocusedBorderColor = Color(0xFFD4CAB8),
-        focusedPlaceholderColor = Color(0xFF5A606A),
-        unfocusedPlaceholderColor = Color(0xFF5A606A),
-        focusedSupportingTextColor = Color(0xFF4A4E57),
-        unfocusedSupportingTextColor = Color(0xFF4A4E57)
+fun nyayaOutlinedTextFieldColors(): androidx.compose.material3.TextFieldColors {
+    val isDark = isSystemInDarkTheme()
+    return androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+        focusedTextColor = if (isDark) Color(0xFFFAF7F2) else Color(0xFF14181F),
+        unfocusedTextColor = if (isDark) Color(0xFFFAF7F2) else Color(0xFF14181F),
+        focusedContainerColor = if (isDark) Color(0xFF1C2B44) else Color(0xFFF3ECE1),
+        unfocusedContainerColor = if (isDark) Color(0xFF1C2B44) else Color(0xFFF3ECE1),
+        cursorColor = if (isDark) Color(0xFF8FAEE0) else Color(0xFF0F1E36),
+        focusedBorderColor = if (isDark) Color(0xFF8FAEE0) else Color(0xFF0F1E36),
+        unfocusedBorderColor = if (isDark) Color(0xFF6B2937) else Color(0xFFD4CAB8),
+        focusedPlaceholderColor = if (isDark) Color(0xFFA0AAB8) else Color(0xFF5A606A),
+        unfocusedPlaceholderColor = if (isDark) Color(0xFFA0AAB8) else Color(0xFF5A606A),
+        focusedSupportingTextColor = if (isDark) Color(0xFFD0D7E2) else Color(0xFF4A4E57),
+        unfocusedSupportingTextColor = if (isDark) Color(0xFFD0D7E2) else Color(0xFF4A4E57)
     )
+}
 
 

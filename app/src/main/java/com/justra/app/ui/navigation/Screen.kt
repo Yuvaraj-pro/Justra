@@ -15,6 +15,8 @@ sealed class Screen(val route: String) {
     data object MyCasesHub : Screen("my_cases_hub")
     data object StatutoryToolsHub : Screen("statutory_tools_hub")
     data object AccountSettingsHub : Screen("account_settings_hub")
+    data object Profile : Screen("profile")
+    data object Settings : Screen("settings")
     data object NewGrievance : Screen("new_grievance")
     data object SmartComplaint : Screen("smart_complaint/{caseId}") {
         fun createRoute(caseId: String): String = "smart_complaint/$caseId"
@@ -57,7 +59,9 @@ object Routes {
     const val LanguageSelect = "language_consent"
     const val CourtFeeCalculator = "court_fee_calculator"
     const val EvidenceHashAudit = "section_65b_certificate"
-    const val Settings = "account_settings"
+    const val Settings = "settings"
+    const val Profile = "profile"
+    const val AccountSettings = "account_settings"
     const val LimitationReminders = "notifications_center"
     const val RtiWizard = "rti_drafting_wizard"
     const val DemandNoticeGenerator = "legal_notice_composer"

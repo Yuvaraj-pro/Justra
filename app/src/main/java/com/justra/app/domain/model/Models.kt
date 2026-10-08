@@ -3,12 +3,8 @@ package com.justra.app.domain.model
 import java.util.UUID
 
 enum class LanguagePreference(val code: String, val displayName: String, val tamilName: String) {
-    ENGLISH("en_IN", "English", "English"),
-    TAMIL("ta_IN", "தமிழ்", "Tamil"),
-    HINDI("hi_IN", "हिन्दी", "Hindi"),
-    TELUGU("te_IN", "తెలుగు", "Telugu"),
-    MALAYALAM("ml_IN", "മലയാളം", "Malayalam"),
-    KANNADA("kn_IN", "ಕನ್ನಡ", "Kannada")
+    ENGLISH("en_IN", "English", "ஆங்கிலம்"),
+    TAMIL("ta_IN", "தமிழ்", "தமிழ்")
 }
 
 enum class DisputeCategory(

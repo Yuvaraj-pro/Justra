@@ -277,4 +277,48 @@ class SecurityManager(context: Context) {
         }
         return digest.digest().joinToString("") { "%02x".format(it) }
     }
+
+    fun saveUserProfile(displayName: String, phoneNumber: String, district: String, advocateEnrollmentId: String) {
+        prefs.edit()
+            .putString(KEY_USER_DISPLAY_NAME, displayName)
+            .putString(KEY_USER_PHONE, phoneNumber)
+            .putString(KEY_SELECTED_DISTRICT, district)
+            .putString(KEY_ADVOCATE_ENROLL_ID, advocateEnrollmentId)
+            .apply()
+    }
+
+    fun saveSecurityPin(pin: String) {
+        setVaultPin(pin)
+    }
+
+    fun clearAllUserData() {
+        clearAllPreferences()
+    }
+
+    fun exportAllUserDataJson(): String {
+        val name = getUserDisplayName()
+        val phone = getUserPhoneNumber()
+        val role = getUserRole().name
+        val district = getSelectedDistrict()
+        val enrollId = getAdvocateEnrollmentId()
+        val lang = getLanguagePreference().code
+        return """
+            {
+              "exportTimestamp": ${System.currentTimeMillis()},
+              "appName": "Justra Sovereign Legal Engine",
+              "userProfile": {
+                "displayName": "$name",
+                "phone": "$phone",
+                "activeRole": "$role",
+                "district": "$district",
+                "advocateEnrollmentId": "$enrollId",
+                "language": "$lang"
+              },
+              "vaultStatus": {
+                "hasPin": ${hasVaultPin()},
+                "biometricEnabled": ${isBiometricLockEnabled()}
+              }
+            }
+        """.trimIndent()
+    }
 }

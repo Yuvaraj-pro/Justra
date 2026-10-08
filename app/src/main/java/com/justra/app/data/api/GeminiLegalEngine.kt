@@ -10,6 +10,7 @@ import com.justra.app.domain.model.LanguagePreference
 import com.justra.app.domain.model.LegalComplaintResult
 import com.justra.app.domain.model.RiskLevel
 import com.justra.app.domain.model.UserRole
+import com.justra.app.util.LegalInputValidator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -39,6 +40,19 @@ object GeminiLegalEngine {
         val apiKey = BuildConfig.GEMINI_API_KEY
         val isTamil = language == LanguagePreference.TAMIL
 
+        // 1. Client-side input validation check for gibberish/invalid text
+        val validation = LegalInputValidator.validateLegalInput(userMessage)
+        if (validation is LegalInputValidator.ValidationResult.Invalid) {
+            val clarifyMessage = if (isTamil) "தயவுசெய்து உங்கள் தகவலை தெளிவுபடுத்தவும் (Can you clarify it?)." else "Can you clarify it?"
+            return@withContext ChatIntakeResult(
+                responseText = clarifyMessage,
+                extractedKey = null,
+                extractedValue = null,
+                isActionableProof = false,
+                identifiedCategory = currentCaseCategory
+            )
+        }
+
         val roleInstruction = when (userRole) {
             UserRole.CITIZEN -> "User is an Indian Citizen / Consumer seeking approachable, rights-focused legal advice under Consumer Protection Act 2019, BNS 2023, and civil statutes."
             UserRole.LEGAL_COUNSEL -> "User is an Advocate / Legal Counsel. Provide precise statutory provisions, procedural citations under BNSS 2023 / CPC 1908, evidentiary requirements under BSA 2023, and formal demand notice posture."
@@ -50,27 +64,28 @@ object GeminiLegalEngine {
         if (!apiKey.isNullOrBlank() && apiKey != "MY_GEMINI_API_KEY") {
             try {
                 val systemPrompt = """
-                    You are Justra (ஜஸ்ட்ரா), a sovereign AI Legal Intake Assistant for India.
+                    You are Justra (ஜஸ்ட்ரா), a sovereign AI Legal Assistant for India.
                     Active User Legal Persona: ${userRole.titleEn} (${userRole.titleTa}).
                     $roleInstruction
                     Language to respond in: ${if (isTamil) "Tamil (தமிழ்)" else "English"}.
-                    Goal: Parse user statements into legal facts, detect key details (like Transaction ID, Opposing Party Name, Dates, Amount Lost/Claimed), and provide direct procedural guidance under Indian Laws (BNS, BNSS, BSA, CPA 2019, IT Act, MSMED Act).
                     
-                    MANDATORY TRIAGE FORMAT:
-                    Your response MUST be complete and include ALL 4 sections:
-                    1. Legal Classification & Risk Level
-                    2. Governing Act & Section (e.g., BNS 2023 Sec 303 for theft, Model Tenancy Act, IT Act Sec 66D)
-                    3. Immediate Action Steps (Step-by-step statutory remedies)
-                    4. Mandatory Evidence Checklist
+                    STRICT RULES:
+                    1. Directly respond to what the user entered in full detail. Answer their specific question or situation accurately.
+                    2. If the user's input is unclear, incomplete, ambiguous, or invalid, simply ask: "${if (isTamil) "தயவுசெய்து உங்கள் தகவலை தெளிவுபடுத்தவும் (Can you clarify it?)." else "Can you clarify it?"}".
+                    3. Do NOT output generic static fallback content. Tailor your response strictly to what the user entered.
                     
-                    Format with clean Markdown. Do NOT truncate or cut off mid-sentence.
+                    FORMAT FOR VALID INTENT:
+                    - Address the user's question directly.
+                    - Legal Classification & Governing Statute (e.g. BNS 2023, Model Tenancy Act, IT Act 2000, CPA 2019).
+                    - Concrete Immediate Action Steps.
+                    - Evidence Checklist.
                 """.trimIndent()
 
                 val request = GeminiRequest(
                     contents = listOf(
                         GeminiContent(
                             parts = listOf(
-                                GeminiPart(text = "User legal problem statement: $userMessage\nContext Dispute Category: ${currentCaseCategory?.titleEn ?: "General Intake"}\nUser Legal Persona: ${userRole.name}")
+                                GeminiPart(text = "User message: $userMessage\nContext Dispute Category: ${currentCaseCategory?.titleEn ?: "General Intake"}\nUser Legal Persona: ${userRole.name}")
                             )
                         )
                     ),
@@ -98,7 +113,20 @@ object GeminiLegalEngine {
 
         // Local Deterministic Legal Engine Fallback
         val extracted = detectEntitiesInText(userMessage)
-        val category = detectCategoryFromText(userMessage) ?: currentCaseCategory ?: DisputeCategory.CONSUMER_GRIEVANCE
+        val detectedCategory = detectCategoryFromText(userMessage)
+        
+        if (detectedCategory == null && currentCaseCategory == null) {
+            val clarifyMsg = if (isTamil) "தயவுசெய்து உங்கள் தகவலை தெளிவுபடுத்தவும் (Can you clarify it?)." else "Can you clarify it?"
+            return@withContext ChatIntakeResult(
+                responseText = clarifyMsg,
+                extractedKey = extracted.first,
+                extractedValue = extracted.second,
+                isActionableProof = extracted.first != null,
+                identifiedCategory = null
+            )
+        }
+
+        val category = detectedCategory ?: currentCaseCategory ?: DisputeCategory.CONSUMER_GRIEVANCE
         val statute = LegalStatuteKnowledge.getStatuteForCategory(category)
 
         val rawResponseText = if (isTamil) {
@@ -216,7 +244,10 @@ object GeminiLegalEngine {
 
                 val request = GeminiRequest(
                     contents = listOf(GeminiContent(parts = listOf(GeminiPart(text = prompt)))),
-                    generationConfig = GeminiGenerationConfig(temperature = 0.1f)
+                    generationConfig = GeminiGenerationConfig(
+                        temperature = 0.1f,
+                        responseMimeType = "application/json"
+                    )
                 )
                 val response = GeminiApiClient.service.generateContent(apiKey, request)
                 val text = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text

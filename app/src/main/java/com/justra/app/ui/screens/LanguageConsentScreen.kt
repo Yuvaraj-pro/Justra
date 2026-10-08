@@ -152,12 +152,8 @@ fun LanguageConsentScreen(
                     Spacer(modifier = Modifier.height(14.dp))
 
                     val languages = listOf(
-                        LanguagePreference.ENGLISH to Pair("English", "India & Global"),
-                        LanguagePreference.TAMIL to Pair("தமிழ்", "தமிழ்நாடு & இந்தியா"),
-                        LanguagePreference.HINDI to Pair("हिन्दी", "भारत & उत्तर/மத்திய"),
-                        LanguagePreference.TELUGU to Pair("తెలుగు", "ஆந்திரா & தெலுங்கானா"),
-                        LanguagePreference.MALAYALAM to Pair("മലയാളം", "கேரளா & இந்தியா"),
-                        LanguagePreference.KANNADA to Pair("கன்னட / ಕನ್ನಡ", "கர்நாடகா & இந்தியா")
+                        LanguagePreference.ENGLISH to Pair("English", "English (India & Global)"),
+                        LanguagePreference.TAMIL to Pair("தமிழ்", "தமிழ் (தமிழ்நாடு & இந்தியா)")
                     )
 
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
