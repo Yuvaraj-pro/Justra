@@ -465,8 +465,8 @@ fun ChatAndVoiceScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Mic Button (Terracotta / Crimson pulsing)
-                Button(
+                // Mic Button (Light Accent Background)
+                OutlinedButton(
                     onClick = {
                         validationError = null
                         if (isListening) {
@@ -490,14 +490,16 @@ fun ChatAndVoiceScreen(
                         .scale(if (isListening) micPulseScale else 1f)
                         .testTag("voice_toggle_button"),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isListening) AlertCrimson else AccentTerracotta,
-                        contentColor = if (isListening) TextOnAlertCrimson else Color.White
-                    )
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = if (isListening) AlertCrimson else Color(0xFFFFDBCF),
+                        contentColor = if (isListening) TextOnAlertCrimson else AccentTerracotta
+                    ),
+                    border = androidx.compose.foundation.BorderStroke(1.5.dp, if (isListening) AlertCrimson else AccentTerracotta)
                 ) {
                     Icon(
                         imageVector = if (isListening) Icons.Default.Stop else Icons.Default.Mic,
                         contentDescription = if (isListening) "Stop Mic" else "Start Mic",
+                        tint = if (isListening) TextOnAlertCrimson else AccentTerracotta,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -507,26 +509,27 @@ fun ChatAndVoiceScreen(
                         } else {
                             if (isTa) "குரலில் பேசு" else "Speak"
                         },
+                        color = if (isListening) TextOnAlertCrimson else AccentTerracotta,
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp
                     )
                 }
 
-                // "ஆராய்ந்து சட்டம் சொல்" (Analyze & Generate) Button with LegalInputValidator Gate
-                Button(
+                // "ஆராய்ந்து சட்டம் சொல்" (Analyze & Generate) Button (Light Navy Container)
+                OutlinedButton(
                     onClick = {
                         validationError = null
                         val trimmed = transcribedText.trim()
                         if (trimmed.isBlank()) {
                             validationError = if (isTa) "தயவுசெய்து உங்கள் பிரச்சனையை கூறவும் அல்லது தட்டச்சு செய்யவும்" else "Please provide your grievance details"
-                            return@Button
+                            return@OutlinedButton
                         }
 
                         // Client-side Heuristic Gate for Gibberish and Random Text
                         val validation = LegalInputValidator.validateLegalInput(trimmed)
                         if (validation is LegalInputValidator.ValidationResult.Invalid) {
                             validationError = if (isTa) validation.errorMessageTa else validation.errorMessageEn
-                            return@Button
+                            return@OutlinedButton
                         }
 
                         if (isListening) {
@@ -559,20 +562,22 @@ fun ChatAndVoiceScreen(
                         .height(52.dp)
                         .testTag("analyze_generate_button"),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = SovereignNavy,
-                        contentColor = Color.White
-                    )
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = SoftNavyContainer,
+                        contentColor = SovereignNavy
+                    ),
+                    border = androidx.compose.foundation.BorderStroke(1.5.dp, SovereignNavy)
                 ) {
                     if (isAnalyzing) {
                         CircularProgressIndicator(
-                            color = Color.White,
+                            color = SovereignNavy,
                             modifier = Modifier.size(20.dp),
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = if (isTa) "ஆராய்கிறது..." else "Analyzing...",
+                            color = SovereignNavy,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -580,11 +585,13 @@ fun ChatAndVoiceScreen(
                         Icon(
                             imageVector = Icons.Default.AutoAwesome,
                             contentDescription = "Analyze",
+                            tint = SovereignNavy,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = if (isTa) "ஆராய்ந்து சட்டம் சொல்" else "Analyze Legal Code",
+                            color = SovereignNavy,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
                         )

@@ -138,18 +138,39 @@ fun ChatAssistantScreen(
                     .windowInsetsPadding(WindowInsets.navigationBars)
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
-                    // Interactive Canvas Recording waveform indicator if active
+                    // Inline live listening banner (no dialogue overlay)
                     AnimatedVisibility(visible = recordingState == AudioRecordingState.RECORDING) {
-                        InteractiveTamilVoiceWaveformVisualizer(
-                            isRecording = true,
-                            currentLanguage = currentLanguage,
-                            amplitudes = audioWaveforms,
-                            onStopRecording = onStopRecording,
-                            onCancelRecording = onStopRecording,
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFFFCDAD4),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(bottom = 8.dp)
-                        )
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Mic,
+                                    contentDescription = "Live STT",
+                                    tint = Color(0xFF5E130A),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = if (currentLanguage == LanguagePreference.TAMIL)
+                                        "கேட்கிறது... நேரடியாக தட்டச்சாகிறது..."
+                                    else
+                                        "Listening... Transcribing live into chat box...",
+                                    style = TextStyle(
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF5E130A)
+                                    )
+                                )
+                            }
+                        }
                     }
 
                     Row(

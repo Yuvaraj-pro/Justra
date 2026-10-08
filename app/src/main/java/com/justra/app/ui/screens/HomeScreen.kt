@@ -161,15 +161,19 @@ fun HomeScreen(
                         ) {
                             Button(
                                 onClick = onNavigateToVoice,
-                                colors = ButtonDefaults.buttonColors(containerColor = AccentTerracotta),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = TerracottaBadgeContainer,
+                                    contentColor = DeepImperialNavy
+                                ),
+                                border = androidx.compose.foundation.BorderStroke(1.5.dp, DeepImperialNavy),
                                 shape = RoundedCornerShape(10.dp),
                                 modifier = Modifier.weight(1f)
                             ) {
-                                Icon(Icons.Default.Mic, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Default.Mic, contentDescription = null, tint = DeepImperialNavy, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = if (isTa) "குரல் உதவி" else "Voice Intake",
-                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = Color.White)
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = DeepImperialNavy)
                                 )
                             }
                             OutlinedButton(
@@ -315,12 +319,17 @@ fun HomeScreen(
                             Spacer(modifier = Modifier.height(12.dp))
                             Button(
                                 onClick = { onNavigateToRoute?.invoke("my_cases_hub") },
-                                colors = ButtonDefaults.buttonColors(containerColor = SovereignNavy),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = SoftNavyContainer,
+                                    contentColor = SovereignNavy
+                                ),
+                                border = androidx.compose.foundation.BorderStroke(1.5.dp, SovereignNavy),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
                                     text = if (isTa) "எனது வழக்குகள் & 5 கருவிகள் காண" else "Open My Cases & 5 Legal Tools",
-                                    color = Color.White
+                                    color = SovereignNavy,
+                                    fontWeight = FontWeight.Bold
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp))

@@ -60,12 +60,12 @@ val MaterialTheme.nyayaColors: NyayaCustomColors
     get() = LocalNyayaCustomColors.current
 
 private val LightColorScheme = lightColorScheme(
-    primary = SovereignNavy,
-    onPrimary = OnSovereignNavy,
+    primary = SoftNavyContainer,
+    onPrimary = SovereignNavy,
     primaryContainer = SoftNavyContainer,
     onPrimaryContainer = OnNavyContainer,
-    secondary = AccentTerracotta,
-    onSecondary = OnAccentTerracotta,
+    secondary = TerracottaBadgeContainer,
+    onSecondary = OnTerracottaText,
     secondaryContainer = TerracottaBadgeContainer,
     onSecondaryContainer = OnTerracottaText,
     tertiary = SovereignNavy,

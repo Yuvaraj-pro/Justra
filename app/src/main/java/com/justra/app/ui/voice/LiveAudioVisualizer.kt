@@ -226,10 +226,14 @@ fun HardwareAudioVisualizerEngine(
                     }
                     Button(
                         onClick = { permissionLauncher.launch(Manifest.permission.RECORD_AUDIO) },
-                        colors = ButtonDefaults.buttonColors(containerColor = WarmTerracotta),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFFFFFDBCF),
+                            contentColor = DeepImperialNavy
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, DeepImperialNavy),
                         modifier = Modifier.testTag("request_mic_permission_button")
                     ) {
-                        Text("Grant", fontSize = 12.sp)
+                        Text("Grant", fontSize = 12.sp, color = DeepImperialNavy, fontWeight = FontWeight.Bold)
                     }
                 }
             }

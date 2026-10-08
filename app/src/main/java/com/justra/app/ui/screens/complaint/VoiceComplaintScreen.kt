@@ -170,28 +170,34 @@ fun VoiceComplaintScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Mic Record Button (Terracotta Accent)
-            Button(
+            // Mic Record Button (Light Container Background)
+            OutlinedButton(
                 onClick = { if (isListening) stopVoiceInput() else startVoiceInput() },
-                colors = ButtonDefaults.buttonColors(containerColor = if (isListening) AlertCrimson else AccentTerracotta),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = if (isListening) AlertCrimson else TerracottaBadgeContainer,
+                    contentColor = if (isListening) TextOnAlertCrimson else AccentTerracotta
+                ),
+                border = androidx.compose.foundation.BorderStroke(1.5.dp, if (isListening) AlertCrimson else AccentTerracotta),
                 shape = RoundedCornerShape(10.dp),
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
+                    .height(50.dp)
             ) {
                 Icon(
                     imageVector = if (isListening) Icons.Default.Stop else Icons.Default.Mic,
                     contentDescription = "Voice",
-                    tint = if (isListening) TextOnAlertCrimson else androidx.compose.ui.graphics.Color.White
+                    tint = if (isListening) TextOnAlertCrimson else AccentTerracotta
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = if (isListening) "Stop Recording" else "Speak / Record",
-                    color = if (isListening) TextOnAlertCrimson else androidx.compose.ui.graphics.Color.White,
+                    color = if (isListening) TextOnAlertCrimson else AccentTerracotta,
                     fontWeight = FontWeight.Bold
                 )
             }
 
-            // Confirm & Generate Button (Deep Navy)
-            Button(
+            // Confirm & Generate Button (Light Soft Navy Container Background)
+            OutlinedButton(
                 onClick = {
                     if (transcribedText.isNotBlank()) {
                         isProcessing = true
@@ -213,16 +219,22 @@ fun VoiceComplaintScreen(
                     }
                 },
                 enabled = transcribedText.isNotBlank() && !isProcessing,
-                colors = ButtonDefaults.buttonColors(containerColor = SovereignNavy),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = SoftNavyContainer,
+                    contentColor = SovereignNavy
+                ),
+                border = androidx.compose.foundation.BorderStroke(1.5.dp, SovereignNavy),
                 shape = RoundedCornerShape(10.dp),
-                modifier = Modifier.weight(1.3f)
+                modifier = Modifier
+                    .weight(1.3f)
+                    .height(50.dp)
             ) {
                 if (isProcessing) {
-                    CircularProgressIndicator(color = androidx.compose.ui.graphics.Color.White, modifier = Modifier.size(20.dp))
+                    CircularProgressIndicator(color = SovereignNavy, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                 } else {
-                    Icon(imageVector = Icons.Default.CheckCircle, contentDescription = "Submit", tint = androidx.compose.ui.graphics.Color.White)
+                    Icon(imageVector = Icons.Default.CheckCircle, contentDescription = "Submit", tint = SovereignNavy)
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Analyze Law & Register Grievance", color = androidx.compose.ui.graphics.Color.White, fontSize = 12.sp)
+                    Text("Analyze Law & Register Grievance", color = SovereignNavy, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

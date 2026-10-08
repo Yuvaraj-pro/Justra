@@ -284,8 +284,12 @@ private fun CreateCaseModalDialog(
             }
         },
         confirmButton = {
-            Button(onClick = { if (title.isNotBlank()) { onCreate(title, selectedCategory, null, opposingParty.ifBlank { null }, amount.ifBlank { null }, summary.ifBlank { null }, null) } }, colors = ButtonDefaults.buttonColors(containerColor = SovereignNavy)) {
-                Text(if (isTa) "உருவாக்கு" else "Create Case", color = Color.White)
+            Button(
+                onClick = { if (title.isNotBlank()) { onCreate(title, selectedCategory, null, opposingParty.ifBlank { null }, amount.ifBlank { null }, summary.ifBlank { null }, null) } },
+                colors = ButtonDefaults.buttonColors(containerColor = SoftNavyContainer, contentColor = SovereignNavy),
+                border = androidx.compose.foundation.BorderStroke(1.5.dp, SovereignNavy)
+            ) {
+                Text(if (isTa) "உருவாக்கு" else "Create Case", color = SovereignNavy, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
