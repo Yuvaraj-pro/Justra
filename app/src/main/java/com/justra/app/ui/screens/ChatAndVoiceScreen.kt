@@ -146,7 +146,7 @@ fun ChatAndVoiceScreen(
 
     // Screen text state (editable two-stage intake)
     var transcribedText by remember { mutableStateOf(initialPrompt) }
-    var selectedLocale by remember { mutableStateOf(VoiceToTextManager.LOCALE_TAMIL) }
+    var selectedLocale by remember { mutableStateOf(VoiceToTextManager.LOCALE_ENGLISH) }
     var isAnalyzing by remember { mutableStateOf(false) }
     var validationError by remember { mutableStateOf<String?>(null) }
     var analysisResult by remember { mutableStateOf<LegalAnalysisResponse?>(null) }

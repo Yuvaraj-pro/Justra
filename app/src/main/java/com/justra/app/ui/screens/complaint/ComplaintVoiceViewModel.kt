@@ -89,7 +89,7 @@ class ComplaintVoiceViewModel(application: Application) : AndroidViewModel(appli
     private val _uiState = MutableStateFlow<ComplaintVoiceUiState>(ComplaintVoiceUiState.Idle)
     val uiState: StateFlow<ComplaintVoiceUiState> = _uiState.asStateFlow()
 
-    private val _selectedLanguage = MutableStateFlow(LanguagePreference.TAMIL)
+    private val _selectedLanguage = MutableStateFlow(LanguagePreference.ENGLISH)
     val selectedLanguage: StateFlow<LanguagePreference> = _selectedLanguage.asStateFlow()
 
     private val _currentRole = MutableStateFlow(securityManager.getUserRole())
