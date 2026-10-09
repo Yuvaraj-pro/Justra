@@ -19,11 +19,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.justra.app.domain.model.LanguagePreference
-import com.justra.app.ui.components.BiometricReauthModal
 import com.justra.app.ui.screens.AccountSettingsHubScreen
 import com.justra.app.ui.screens.ActionNavigatorScreen
 import com.justra.app.ui.screens.AuthScreen
-import com.justra.app.ui.screens.BiometricAuthScreen
 import com.justra.app.ui.screens.BnsIpcTransitionScreen
 import com.justra.app.ui.screens.ChatAssistantScreen
 import com.justra.app.ui.screens.ComplaintGeneratorScreen
@@ -46,7 +44,8 @@ import com.justra.app.ui.screens.NewGrievanceScreen
 import com.justra.app.ui.screens.NotificationsRemindersCenterScreen
 import com.justra.app.ui.screens.OnboardingScreen
 import com.justra.app.ui.screens.PermissionsSetupScreen
-import com.justra.app.ui.screens.PinAuthScreen
+import com.justra.app.ui.screens.ProfileScreen
+import com.justra.app.ui.screens.SettingsScreen
 import com.justra.app.ui.screens.RtiDraftingWizardScreen
 import com.justra.app.ui.screens.ScamCheckerScreen
 import com.justra.app.ui.screens.Section65BCertificateGeneratorScreen
@@ -366,13 +365,6 @@ fun JustraNavGraph(
                 )
             }
 
-            composable("security_settings") {
-                PinAuthScreen(
-                    currentLanguage = language,
-                    onAuthenticated = { navController.popBackStack() }
-                )
-            }
-
             composable(JustraDestinations.LIMITATION_REMINDERS) {
                 LimitationRemindersScreen(
                     viewModel = viewModel,
@@ -587,12 +579,36 @@ fun JustraNavGraph(
                 )
             }
 
+            composable("profile") {
+                ProfileScreen(
+                    viewModel = viewModel,
+                    currentLanguage = language,
+                    onToggleLanguage = { viewModel.toggleLanguage() },
+                    onNavigateToSettings = { navController.navigate("settings") },
+                    onNavigateToLogin = {
+                        navController.navigate(JustraDestinations.AUTH) {
+                            popUpTo(JustraDestinations.HOME) { inclusive = true }
+                        }
+                    },
+                    onNavigateToRoute = { route -> navController.navigate(route) }
+                )
+            }
+
+            composable("settings") {
+                SettingsScreen(
+                    viewModel = viewModel,
+                    currentLanguage = language,
+                    onToggleLanguage = { viewModel.toggleLanguage() },
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
             composable("account_settings_hub") {
                 AccountSettingsHubScreen(
                     viewModel = viewModel,
                     currentLanguage = language,
                     onToggleLanguage = { viewModel.toggleLanguage() },
-                    onBackClick = { navController.popBackStack() },
+                    onNavigateBack = { navController.popBackStack() },
                     onNavigateToLogin = {
                         navController.navigate(JustraDestinations.AUTH) {
                             popUpTo(JustraDestinations.HOME) { inclusive = true }
@@ -606,7 +622,7 @@ fun JustraNavGraph(
                     viewModel = viewModel,
                     currentLanguage = language,
                     onToggleLanguage = { viewModel.toggleLanguage() },
-                    onBackClick = { navController.popBackStack() },
+                    onNavigateBack = { navController.popBackStack() },
                     onNavigateToLogin = {
                         navController.navigate(JustraDestinations.AUTH) {
                             popUpTo(JustraDestinations.HOME) { inclusive = true }
@@ -876,13 +892,7 @@ fun JustraNavGraph(
             }
         }
 
-        if (isReauthRequired && hasAcceptedConsent && isAuthenticated) {
-            BiometricReauthModal(
-                currentLanguage = language,
-                onUnlockWithBiometric = { viewModel.completeReauthentication() },
-                onVerifyPin = { pin -> viewModel.verifyPinForReauth(pin) }
-            )
-        }
+
     }
 }
 

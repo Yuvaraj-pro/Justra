@@ -163,10 +163,10 @@ class LocationJurisdictionManager(private val context: Context) {
         )
     }
 
-    private val securityPreferences = SecurityPreferences.getInstance(context)
+    private val securityManager = com.justra.app.data.local.SecurityManager(context)
 
     private val _currentJurisdiction = MutableStateFlow(
-        getJurisdictionByCode(securityPreferences.getSelectedJurisdictionCode())
+        getJurisdictionByCode(securityManager.getSelectedJurisdictionCode())
     )
     val currentJurisdiction: StateFlow<JurisdictionData> = _currentJurisdiction.asStateFlow()
 
@@ -199,7 +199,7 @@ class LocationJurisdictionManager(private val context: Context) {
                             val resolved = getJurisdictionByCode(countryCode)
                             _currentJurisdiction.value = resolved
                             _selectionMode.value = JurisdictionSelectionMode.AUTO_GPS
-                            securityPreferences.setSelectedJurisdictionCode(resolved.countryCode)
+                            securityManager.setSelectedJurisdictionCode(resolved.countryCode)
                             resolvedSuccess = true
                         }
                     } catch (e: Exception) {
@@ -241,7 +241,7 @@ class LocationJurisdictionManager(private val context: Context) {
                             val resolved = getJurisdictionByCode(countryCode)
                             _currentJurisdiction.value = resolved
                             _selectionMode.value = JurisdictionSelectionMode.AUTO_GPS
-                            securityPreferences.setSelectedJurisdictionCode(resolved.countryCode)
+                            securityManager.setSelectedJurisdictionCode(resolved.countryCode)
                             Log.d(TAG, "Successfully resolved location: ${resolved.countryName} ($countryCode)")
                             onResolved?.invoke(resolved)
                         } else {
@@ -274,7 +274,7 @@ class LocationJurisdictionManager(private val context: Context) {
         val resolved = getJurisdictionByCode(countryCode)
         _selectionMode.value = JurisdictionSelectionMode.MANUAL_OVERRIDE
         _currentJurisdiction.value = resolved
-        securityPreferences.setSelectedJurisdictionCode(resolved.countryCode)
+        securityManager.setSelectedJurisdictionCode(resolved.countryCode)
         Log.d(TAG, "Manual jurisdiction override set to: ${resolved.countryName} (${resolved.countryCode})")
     }
 

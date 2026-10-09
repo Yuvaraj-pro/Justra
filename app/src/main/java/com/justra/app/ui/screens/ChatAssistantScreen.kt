@@ -67,6 +67,7 @@ import com.justra.app.ui.theme.PaleSandstoneVariant
 import com.justra.app.ui.theme.PrimaryContainerSlate
 import com.justra.app.ui.theme.SageGreenSuccessContainer
 import com.justra.app.ui.theme.SageGreenSuccessText
+import com.justra.app.ui.theme.SovereignNavy
 import com.justra.app.ui.theme.TerracottaAccentSecondary
 import com.justra.app.ui.theme.TerracottaContainer
 import com.justra.app.ui.theme.WarmIvorySurface
@@ -98,6 +99,46 @@ fun ChatAssistantScreen(
 ) {
     var textInput by remember { mutableStateOf(initialPrompt ?: "") }
     val listState = rememberLazyListState()
+
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            onStartRecording()
+        } else {
+            android.widget.Toast.makeText(
+                context,
+                if (currentLanguage == LanguagePreference.TAMIL) "குரல் பதிவு செய்ய அனுமதி தேவை" else "Microphone permission is required for voice query",
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose {
+            if (recordingState == AudioRecordingState.RECORDING) {
+                onStopRecording()
+            }
+        }
+    }
+
+    val handleMicClick = {
+        val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
+            context,
+            android.Manifest.permission.RECORD_AUDIO
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+        if (recordingState == AudioRecordingState.RECORDING) {
+            onStopRecording()
+        } else {
+            if (hasPermission) {
+                onStartRecording()
+            } else {
+                permissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+            }
+        }
+    }
 
     LaunchedEffect(liveTranscript) {
         if (liveTranscript.isNotBlank()) {
@@ -178,35 +219,19 @@ fun ChatAssistantScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        // Mic Button / Stop Button
-                        if (recordingState == AudioRecordingState.RECORDING) {
-                            IconButton(
-                                onClick = onStopRecording,
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .background(TerracottaAccentSecondary)
-                                    .testTag("chat_stop_recording_button")
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Stop,
-                                    contentDescription = "Stop",
-                                    tint = Color.White
-                                )
-                            }
-                        } else {
-                            IconButton(
-                                onClick = onStartRecording,
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .background(PaleSandstoneVariant)
-                                    .testTag("chat_mic_record_button")
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Mic,
-                                    contentDescription = "Record Voice",
-                                    tint = DeepIndigoSlatePrimary
-                                )
-                            }
+                        // Mic Button / Stop Button with Gemini Live STT Permission Handling
+                        IconButton(
+                            onClick = handleMicClick,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(if (recordingState == AudioRecordingState.RECORDING) TerracottaAccentSecondary else SovereignNavy)
+                                .testTag(if (recordingState == AudioRecordingState.RECORDING) "chat_stop_recording_button" else "chat_mic_record_button")
+                        ) {
+                            Icon(
+                                imageVector = if (recordingState == AudioRecordingState.RECORDING) Icons.Default.Stop else Icons.Default.Mic,
+                                contentDescription = "Record Voice",
+                                tint = Color.White
+                            )
                         }
 
                         OutlinedTextField(

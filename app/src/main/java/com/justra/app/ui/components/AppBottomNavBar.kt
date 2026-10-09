@@ -33,18 +33,20 @@ fun AppBottomNavBar(
 ) {
     val isTa = currentLanguage == LanguagePreference.TAMIL
 
+    val brandBlue = Color(0xFF1E3A8A)
+
     val navBarItemColors = NavigationBarItemDefaults.colors(
-        selectedIconColor = SovereignNavy,
-        selectedTextColor = SovereignNavy,
-        indicatorColor = SoftNavyContainer,
-        unselectedIconColor = TextSecondaryDark,
-        unselectedTextColor = TextSecondaryDark
+        selectedIconColor = Color.White,
+        selectedTextColor = Color.White,
+        indicatorColor = Color.White.copy(alpha = 0.2f),
+        unselectedIconColor = Color.White,
+        unselectedTextColor = Color.White
     )
 
     NavigationBar(
         windowInsets = WindowInsets.navigationBars,
-        containerColor = SandstoneCard,
-        contentColor = SovereignNavy,
+        containerColor = brandBlue,
+        contentColor = Color.White,
         tonalElevation = 8.dp,
         modifier = modifier
     ) {
@@ -112,16 +114,16 @@ fun AppBottomNavBar(
             colors = navBarItemColors
         )
 
-        // Hub 5: Profile & Settings Hub
+        // Hub 5: Profile Hub
         NavigationBarItem(
-            selected = currentRoute == "account_settings_hub" || currentRoute == "profile",
-            onClick = { onNavigateTo("account_settings_hub") },
+            selected = currentRoute == "profile",
+            onClick = { onNavigateTo("profile") },
             icon = { Icon(Icons.Default.Person, contentDescription = "Profile", modifier = Modifier.size(22.dp)) },
             label = {
                 Text(
                     text = if (isTa) "சுயவிவரம்" else "Profile",
                     fontSize = 11.sp,
-                    fontWeight = if (currentRoute == "account_settings_hub") FontWeight.Bold else FontWeight.Medium
+                    fontWeight = if (currentRoute == "profile") FontWeight.Bold else FontWeight.Medium
                 )
             },
             alwaysShowLabel = true,

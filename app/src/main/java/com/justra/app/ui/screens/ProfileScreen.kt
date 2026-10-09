@@ -1,19 +1,19 @@
 package com.justra.app.ui.screens
 
-import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Gavel
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,7 +39,7 @@ fun ProfileScreen(
     currentLanguage: LanguagePreference,
     onToggleLanguage: () -> Unit,
     onNavigateToSettings: () -> Unit,
-    onNavigateToLogin: () -> Unit,
+    onNavigateToLogin: (() -> Unit)? = null,
     onNavigateToRoute: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -47,22 +47,20 @@ fun ProfileScreen(
     val isTa = currentLanguage == LanguagePreference.TAMIL
     val securityManager = viewModel.securityManager
 
-    // User Profile State
-    var userDisplayName by remember { mutableStateOf(securityManager.getUserDisplayName()) }
-    var userPhone by remember { mutableStateOf(securityManager.getUserPhoneNumber()) }
-    var selectedDistrict by remember { mutableStateOf(securityManager.getSelectedDistrict()) }
-    var advocateEnrollId by remember { mutableStateOf(securityManager.getAdvocateEnrollmentId()) }
-    val currentRole by viewModel.userRole.collectAsState()
-    val activeCases by viewModel.activeCases.collectAsState()
+    // User details state
+    var fullName by remember { mutableStateOf(securityManager.getUserDisplayName().ifBlank { if (isTa) "நீதி பயனர்" else "Justice Citizen" }) }
+    var contactPhone by remember { mutableStateOf(securityManager.getUserPhoneNumber().ifBlank { "+91 98765 43210" }) }
+    var primaryJurisdiction by remember { mutableStateOf(securityManager.getSelectedDistrict().ifBlank { "Madras High Court / District Court" }) }
 
-    var isEditing by remember { mutableStateOf(false) }
+    val activeRole by viewModel.userRole.collectAsState()
+    var selectedPersona by remember { mutableStateOf(activeRole) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = if (isTa) "எனது சுயவிவரம்" else "My Profile",
+                        text = if (isTa) "சுயவிவரம்" else "User Profile",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.Bold,
@@ -71,10 +69,9 @@ fun ProfileScreen(
                     )
                 },
                 actions = {
-                    // Settings Button in Profile Top Bar
                     IconButton(
                         onClick = onNavigateToSettings,
-                        modifier = Modifier.testTag("profile_settings_icon_btn")
+                        modifier = Modifier.testTag("profile_settings_gear_icon")
                     ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
@@ -83,7 +80,7 @@ fun ProfileScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = WarmIvorySurface)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = WarmCanvasBg)
             )
         },
         bottomBar = {
@@ -104,507 +101,297 @@ fun ProfileScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(top = 12.dp, bottom = 32.dp)
         ) {
-            // 1. Hero Profile Card
+            // Header Avatar Card
             item {
                 Card(
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = SandstoneCard),
                     border = BorderStroke(1.dp, CardBorderStroke),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(20.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
-                                .size(84.dp)
+                                .size(64.dp)
                                 .clip(CircleShape)
-                                .background(AccentTerracotta)
+                                .background(SovereignNavy)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Person,
                                 contentDescription = "Avatar",
                                 tint = Color.White,
-                                modifier = Modifier.size(54.dp)
+                                modifier = Modifier.size(36.dp)
                             )
                         }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text(
+                                text = fullName,
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = SovereignNavy
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = selectedPersona.badgeEn + " • " + primaryJurisdiction,
+                                style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
+                            )
+                        }
+                    }
+                }
+            }
 
-                        Spacer(modifier = Modifier.height(12.dp))
-
+            // Section 1: User Profile & Judicial Jurisdiction
+            item {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                    border = BorderStroke(1.dp, CardBorderStroke),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                         Text(
-                            text = userDisplayName.ifBlank { if (isTa) "நீதி பயனர்" else "Justice Citizen" },
-                            style = MaterialTheme.typography.headlineSmall.copy(
+                            text = if (isTa) "பயனர் விவரங்கள் & நீதித்துறை அதிகார வரம்பு" else "User Profile & Judicial Jurisdiction",
+                            style = MaterialTheme.typography.titleSmall.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = SovereignNavy,
                                 fontFamily = FontFamily.Serif
                             )
                         )
 
+                        OutlinedTextField(
+                            value = fullName,
+                            onValueChange = { fullName = it },
+                            label = { Text(if (isTa) "முழு பெயர்" else "Full Name") },
+                            colors = justraOutlinedTextFieldColors(),
+                            singleLine = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("profile_full_name_input")
+                        )
+
+                        OutlinedTextField(
+                            value = contactPhone,
+                            onValueChange = { contactPhone = it },
+                            label = { Text(if (isTa) "தொடர்பு தொலைபேசி எண்" else "Contact Phone Number") },
+                            colors = justraOutlinedTextFieldColors(),
+                            singleLine = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("profile_phone_input")
+                        )
+
+                        OutlinedTextField(
+                            value = primaryJurisdiction,
+                            onValueChange = { primaryJurisdiction = it },
+                            label = { Text(if (isTa) "முதன்மை அதிகார வரம்பு / நீதிமன்றம்" else "Primary Jurisdiction (e.g. District Court, Madras High Court)") },
+                            colors = justraOutlinedTextFieldColors(),
+                            singleLine = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("profile_jurisdiction_input")
+                        )
+
                         Spacer(modifier = Modifier.height(4.dp))
 
+                        // Legal Persona Selector
                         Text(
-                            text = userPhone.ifBlank { if (isTa) "+91 நொய்யா பாதுகாப்பு எண்கள்" else "+91 Protected Number" },
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                color = TextSecondaryDark
-                            )
-                        )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Surface(
-                                shape = RoundedCornerShape(12.dp),
-                                color = AccentTerracotta
-                            ) {
-                                Text(
-                                    text = currentRole.name,
-                                    style = MaterialTheme.typography.labelMedium.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White
-                                    ),
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
-                                )
-                            }
-
-                            Surface(
-                                shape = RoundedCornerShape(12.dp),
-                                color = PaleSandstoneVariant
-                            ) {
-                                Text(
-                                    text = if (currentLanguage == LanguagePreference.TAMIL) "தமிழ் (IN)" else "English (IN)",
-                                    style = MaterialTheme.typography.labelMedium.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        color = SovereignNavy
-                                    ),
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            // 2. Quick Settings Launcher Tile
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = WarmIvorySurface),
-                    border = BorderStroke(1.dp, SovereignNavy.copy(alpha = 0.15f)),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigateToSettings() }
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(14.dp)
-                        ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = DeepIndigoSlatePrimary.copy(alpha = 0.1f),
-                                modifier = Modifier.size(44.dp)
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        imageVector = Icons.Default.Settings,
-                                        contentDescription = "App Settings",
-                                        tint = SovereignNavy
-                                    )
-                                }
-                            }
-
-                            Column {
-                                Text(
-                                    text = if (isTa) "பயன்பாட்டு அமைப்புகள் & பாதுகாப்பு" else "App Settings & Security",
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        color = TextPrimaryDark
-                                    )
-                                )
-                                Text(
-                                    text = if (isTa) "மொழி, பயோமெட்ரிக், தனியுரிமை & தரவு மீட்டமைப்பு" else "Language, Biometrics, Privacy & Data",
-                                    style = MaterialTheme.typography.bodySmall.copy(
-                                        color = TextSecondaryDark
-                                    )
-                                )
-                            }
-                        }
-
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = "Navigate",
-                            tint = SovereignNavy
-                        )
-                    }
-                }
-            }
-
-            // 3. User Stats Summary Card
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    border = BorderStroke(1.dp, SovereignNavy.copy(alpha = 0.1f)),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceAround
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = "${activeCases.size}",
-                                style = MaterialTheme.typography.headlineMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = SovereignNavy
-                                )
-                            )
-                            Text(
-                                text = if (isTa) "செயலில் உள்ள வழக்குகள்" else "Active Cases",
-                                style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
-                            )
-                        }
-
-                        VerticalDivider(modifier = Modifier.height(40.dp))
-
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = "100%",
-                                style = MaterialTheme.typography.headlineMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = AccentTerracotta
-                                )
-                            )
-                            Text(
-                                text = if (isTa) "சட்ட பாதுகாப்பு" else "Legal Vault",
-                                style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
-                            )
-                        }
-
-                        VerticalDivider(modifier = Modifier.height(40.dp))
-
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = if (isTa) "தமிழ்/Eng" else "En/Ta",
-                                style = MaterialTheme.typography.headlineMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = DeepIndigoSlatePrimary
-                                )
-                            )
-                            Text(
-                                text = if (isTa) "மொழி" else "Language",
-                                style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
-                            )
-                        }
-                    }
-                }
-            }
-
-            // 4. Personal Info & Profile Edit Card
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = WarmIvorySurface),
-                    border = BorderStroke(1.dp, SovereignNavy.copy(alpha = 0.12f)),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.AccountCircle,
-                                    contentDescription = null,
-                                    tint = SovereignNavy
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = if (isTa) "தனிப்பட்ட விபரங்கள்" else "Personal Details",
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        color = TextPrimaryDark
-                                    )
-                                )
-                            }
-
-                            TextButton(onClick = {
-                                if (isEditing) {
-                                    securityManager.saveUserProfile(
-                                        displayName = userDisplayName,
-                                        phoneNumber = userPhone,
-                                        district = selectedDistrict,
-                                        advocateEnrollmentId = advocateEnrollId
-                                    )
-                                    Toast.makeText(
-                                        context,
-                                        if (isTa) "சுயவிவரம் சேமிக்கப்பட்டது!" else "Profile Saved Successfully!",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                                isEditing = !isEditing
-                            }) {
-                                Text(
-                                    text = if (isEditing) (if (isTa) "சேமி" else "Save") else (if (isTa) "திருத்து" else "Edit"),
-                                    color = SovereignNavy,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        if (isEditing) {
-                            OutlinedTextField(
-                                value = userDisplayName,
-                                onValueChange = { userDisplayName = it },
-                                label = { Text(if (isTa) "முழு பெயர்" else "Full Name") },
-                                colors = nyayaOutlinedTextFieldColors(),
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            OutlinedTextField(
-                                value = userPhone,
-                                onValueChange = { userPhone = it },
-                                label = { Text(if (isTa) "தொலைபேசி எண்" else "Phone Number") },
-                                colors = nyayaOutlinedTextFieldColors(),
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            OutlinedTextField(
-                                value = selectedDistrict,
-                                onValueChange = { selectedDistrict = it },
-                                label = { Text(if (isTa) "மாவட்டம் / மாநிலம்" else "District / Jurisdiction") },
-                                colors = nyayaOutlinedTextFieldColors(),
-                                modifier = Modifier.fillMaxWidth()
-                            )
-
-                            if (currentRole == UserRole.LEGAL_COUNSEL) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                OutlinedTextField(
-                                    value = advocateEnrollId,
-                                    onValueChange = { advocateEnrollId = it },
-                                    label = { Text(if (isTa) "வழக்கறிஞர் பதிவு எண்" else "Bar Council Enrollment ID") },
-                                    colors = nyayaOutlinedTextFieldColors(),
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            }
-                        } else {
-                            ProfileDetailRow(
-                                label = if (isTa) "பெயர்" else "Name",
-                                value = userDisplayName.ifBlank { "Not set" }
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = Color.Gray.copy(alpha = 0.2f))
-                            ProfileDetailRow(
-                                label = if (isTa) "தொலைபேசி" else "Phone",
-                                value = userPhone.ifBlank { "Not set" }
-                            )
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = Color.Gray.copy(alpha = 0.2f))
-                            ProfileDetailRow(
-                                label = if (isTa) "மாவட்டம்" else "District",
-                                value = selectedDistrict.ifBlank { "Tamil Nadu (Default)" }
-                            )
-
-                            if (currentRole == UserRole.LEGAL_COUNSEL && advocateEnrollId.isNotBlank()) {
-                                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = Color.Gray.copy(alpha = 0.2f))
-                                ProfileDetailRow(
-                                    label = if (isTa) "வழக்கறிஞர் பதிவு எண்" else "Enrollment ID",
-                                    value = advocateEnrollId
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            // 5. Role Switcher Card
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = WarmIvorySurface),
-                    border = BorderStroke(1.dp, SovereignNavy.copy(alpha = 0.12f)),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = if (isTa) "பயனர் பங்கு தேர்வு" else "Active Legal Role Profile",
-                            style = MaterialTheme.typography.titleMedium.copy(
+                            text = if (isTa) "சட்ட ஆளுமை வகை (Legal Persona)" else "Legal Persona Selector",
+                            style = MaterialTheme.typography.labelLarge.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = TextPrimaryDark
+                                color = SovereignNavy
                             )
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = if (isTa) "குடிமகன் அல்லது வழக்கறிஞர் சுயவிவர நிலைக்கு மாறவும்" else "Switch role to customize AI analysis view and templates",
-                            style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
+
+                        val personas = listOf(
+                            UserRole.CITIZEN to if (isTa) "குடிமக்கள் (Citizen)" else "Citizen Complainant",
+                            UserRole.LEGAL_COUNSEL to if (isTa) "வழக்கறிஞர் (Counsel)" else "Legal Counsel",
+                            UserRole.MSME_BUSINESS to if (isTa) "வணிக உரிமையாளர் (MSME)" else "MSME Business Owner",
+                            UserRole.CYBER_FRAUD_VICTIM to if (isTa) "சைபர் தற்காப்பு (Cyber)" else "Cyber Defense"
                         )
 
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            UserRole.entries.forEach { role ->
-                                val isSelected = currentRole == role
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            personas.forEach { (role, label) ->
+                                val isSelected = selectedPersona == role
                                 FilterChip(
                                     selected = isSelected,
-                                    onClick = { viewModel.setRole(role) },
+                                    onClick = { selectedPersona = role },
                                     label = {
                                         Text(
-                                            text = role.name,
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                            text = label,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (isSelected) Color.White else SovereignNavy
                                         )
                                     },
+                                    leadingIcon = if (isSelected) {
+                                        { Icon(Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp)) }
+                                    } else null,
                                     colors = FilterChipDefaults.filterChipColors(
                                         selectedContainerColor = SovereignNavy,
                                         selectedLabelColor = Color.White,
                                         containerColor = Color.White,
-                                        labelColor = TextPrimaryDark
+                                        labelColor = SovereignNavy
                                     ),
-                                    modifier = Modifier.weight(1f)
+                                    border = FilterChipDefaults.filterChipBorder(
+                                        enabled = true,
+                                        selected = isSelected,
+                                        borderColor = CardBorderStroke,
+                                        selectedBorderColor = SovereignNavy
+                                    ),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Save Button
+                        Button(
+                            onClick = {
+                                securityManager.saveUserProfile(
+                                    displayName = fullName,
+                                    phoneNumber = contactPhone,
+                                    district = primaryJurisdiction,
+                                    advocateEnrollmentId = securityManager.getAdvocateEnrollmentId()
+                                )
+                                viewModel.setUserRole(selectedPersona)
+                                Toast.makeText(
+                                    context,
+                                    if (isTa) "சுயவிவரம் புதுப்பிக்கப்பட்டது!" else "Profile updated successfully!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = SovereignNavy,
+                                contentColor = Color.White
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                                .testTag("profile_save_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Save,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (isTa) "சுயவிவரத்தை சேமி" else "Save & Update Profile",
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Section 2: Language & Accessibility Preferences
+            item {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                    border = BorderStroke(1.dp, CardBorderStroke),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Language,
+                                contentDescription = null,
+                                tint = SovereignNavy,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (isTa) "மொழி & அணுகல்தன்மை முன்னுரிமைகள்" else "Language & Accessibility Preferences",
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = SovereignNavy,
+                                    fontFamily = FontFamily.Serif
+                                )
+                            )
+                        }
+
+                        Text(
+                            text = if (isTa) "பயன்பாட்டின் முதன்மை மொழியைத் தேர்ந்தெடுக்கவும்:" else "Select app-wide primary language:",
+                            style = MaterialTheme.typography.bodyMedium.copy(color = TextSecondaryDark)
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            // English Selection Button
+                            val isEng = currentLanguage == LanguagePreference.ENGLISH
+                            OutlinedButton(
+                                onClick = {
+                                    if (!isEng) {
+                                        viewModel.setLanguage(LanguagePreference.ENGLISH)
+                                    }
+                                },
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    containerColor = if (isEng) SovereignNavy else Color.White,
+                                    contentColor = if (isEng) Color.White else SovereignNavy
+                                ),
+                                border = BorderStroke(1.dp, SovereignNavy),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                                    .testTag("lang_toggle_english")
+                            ) {
+                                Text(
+                                    text = "English",
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isEng) Color.White else SovereignNavy
+                                )
+                            }
+
+                            // Tamil Selection Button
+                            val isTamilSel = currentLanguage == LanguagePreference.TAMIL
+                            OutlinedButton(
+                                onClick = {
+                                    if (!isTamilSel) {
+                                        viewModel.setLanguage(LanguagePreference.TAMIL)
+                                    }
+                                },
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    containerColor = if (isTamilSel) SovereignNavy else Color.White,
+                                    contentColor = if (isTamilSel) Color.White else SovereignNavy
+                                ),
+                                border = BorderStroke(1.dp, SovereignNavy),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                                    .testTag("lang_toggle_tamil")
+                            ) {
+                                Text(
+                                    text = "தமிழ்",
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isTamilSel) Color.White else SovereignNavy
                                 )
                             }
                         }
                     }
                 }
             }
-
-            // 6. Emergency Legal Contact Cards
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    border = BorderStroke(1.dp, HennaRedAlertText.copy(alpha = 0.3f)),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Shield,
-                                contentDescription = null,
-                                tint = HennaRedAlertText
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = if (isTa) "அவசர சட்ட உதவிகள் (India)" else "Emergency Legal Helplines (India)",
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = HennaRedAlertText
-                                )
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            EmergencyBadge(title = "NALSA Legal Aid", number = "15100")
-                            EmergencyBadge(title = "Cyber Fraud", number = "1930")
-                            EmergencyBadge(title = "Women Helpline", number = "1091")
-                        }
-                    }
-                }
-            }
-
-            // 7. Logout / Sign Out Tile
-            item {
-                OutlinedButton(
-                    onClick = onNavigateToLogin,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = HennaRedAlertText),
-                    border = BorderStroke(1.5.dp, HennaRedAlertText),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(imageVector = Icons.Default.Lock, contentDescription = "Logout")
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = if (isTa) "வெளியேறு (Logout)" else "Sign Out / Lock Session",
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ProfileDetailRow(
-    label: String,
-    value: String
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium.copy(
-                color = TextSecondaryDark,
-                fontWeight = FontWeight.Medium
-            )
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium.copy(
-                color = TextPrimaryDark,
-                fontWeight = FontWeight.Bold
-            )
-        )
-    }
-}
-
-@Composable
-private fun EmergencyBadge(
-    title: String,
-    number: String
-) {
-    Surface(
-        shape = RoundedCornerShape(10.dp),
-        color = HennaRedAlertContainer.copy(alpha = 0.5f),
-        border = BorderStroke(1.dp, HennaRedAlertText.copy(alpha = 0.3f))
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = number,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = HennaRedAlertText
-                )
-            )
-            Text(
-                text = title,
-                style = MaterialTheme.typography.labelSmall.copy(
-                    color = TextPrimaryDark,
-                    fontSize = 10.sp
-                )
-            )
         }
     }
 }

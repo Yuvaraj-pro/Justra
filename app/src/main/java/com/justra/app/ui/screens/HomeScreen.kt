@@ -77,7 +77,7 @@ fun HomeScreen(
                 unreadNotifications = unreadNotificationsCount,
                 onToggleLanguage = onToggleLanguage,
                 onNotificationClick = { onNavigateToRoute?.invoke("notifications_center") },
-                onSettingsClick = { onNavigateToRoute?.invoke("account_settings") }
+                onSettingsClick = { onNavigateToRoute?.invoke("settings") }
             )
         },
         bottomBar = {
@@ -163,18 +163,17 @@ fun HomeScreen(
                             Button(
                                 onClick = onNavigateToVoice,
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = TerracottaBadgeContainer,
-                                    contentColor = DeepImperialNavy
+                                    containerColor = AccentTerracotta,
+                                    contentColor = Color.White
                                 ),
-                                border = androidx.compose.foundation.BorderStroke(1.5.dp, DeepImperialNavy),
                                 shape = RoundedCornerShape(10.dp),
                                 modifier = Modifier.weight(1f)
                             ) {
-                                Icon(Icons.Default.Mic, contentDescription = null, tint = DeepImperialNavy, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Default.Mic, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = if (isTa) "குரல் உதவி" else "Voice Intake",
-                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = DeepImperialNavy)
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = Color.White)
                                 )
                             }
                             OutlinedButton(
@@ -321,19 +320,19 @@ fun HomeScreen(
                             Button(
                                 onClick = { onNavigateToRoute?.invoke("my_cases_hub") },
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = SoftNavyContainer,
-                                    contentColor = SovereignNavy
+                                    containerColor = SovereignNavy,
+                                    contentColor = Color.White
                                 ),
-                                border = androidx.compose.foundation.BorderStroke(1.5.dp, SovereignNavy),
+                                shape = RoundedCornerShape(10.dp),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
                                     text = if (isTa) "எனது வழக்குகள் & 5 கருவிகள் காண" else "Open My Cases & 5 Legal Tools",
-                                    color = SovereignNavy,
+                                    color = Color.White,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                             }
                         }
                     }

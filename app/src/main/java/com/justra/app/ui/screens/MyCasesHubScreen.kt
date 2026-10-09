@@ -67,7 +67,7 @@ fun MyCasesHubScreen(
                 unreadNotifications = 0,
                 onToggleLanguage = onToggleLanguage,
                 onNotificationClick = { onNavigateToRoute("notifications_center") },
-                onSettingsClick = { onNavigateToRoute("account_settings") }
+                onSettingsClick = { onNavigateToRoute("settings") }
             )
         },
         bottomBar = {

@@ -127,7 +127,47 @@ fun VoiceComplaintRegistrationScreen(
 
     var isEditingGeneratedDraft by remember { mutableStateOf(false) }
     var userEditedDraft by remember { mutableStateOf("") }
-    var activeTab by remember { mutableStateOf(0) }
+    val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            viewModel.startVoiceIntake()
+        } else {
+            Toast.makeText(
+                context,
+                if (isTa) "குரல் பதிவு செய்ய அனுமதி தேவை (Microphone permission required)" else "RECORD_AUDIO permission is required for voice intake",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose {
+            try {
+                viewModel.voiceManager.stopListening()
+                viewModel.audioRecorderHelper.stopRecording()
+            } catch (e: Exception) {
+                // Ignore disposal errors safely
+            }
+        }
+    }
+
+    val toggleRecording = {
+        val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
+            context,
+            android.Manifest.permission.RECORD_AUDIO
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+        if (uiState is ComplaintVoiceUiState.Recording) {
+            viewModel.stopVoiceIntake()
+        } else {
+            if (hasPermission) {
+                viewModel.startVoiceIntake()
+            } else {
+                permissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+            }
+        }
+    }
 
     val infiniteTransition = rememberInfiniteTransition(label = "mic_pulse")
     val pulseScale by infiniteTransition.animateFloat(
@@ -277,6 +317,73 @@ fun VoiceComplaintRegistrationScreen(
                     }
                 }
 
+                // Gemini Live Audio STT Microphone Card
+                item {
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (uiState is ComplaintVoiceUiState.Recording) Color(0xFFFFE8E0) else SandstoneSurface
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.5.dp,
+                            if (uiState is ComplaintVoiceUiState.Recording) WarmTerracotta else ParchmentOutline
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = if (uiState is ComplaintVoiceUiState.Recording) {
+                                    if (isTa) "நேரலை குரல் பதிவு பெறப்படுகிறது... (English / தமிழ் / Tanglish)" else "Streaming Live Audio... Speak in English, Tamil, or Tanglish"
+                                } else {
+                                    if (isTa) "குரல் மூலம் கூற நுண்ஒலியை அழுத்தவும்" else "Tap Microphone for Gemini Live STT"
+                                },
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = DeepImperialNavy
+                                ),
+                                textAlign = TextAlign.Center
+                            )
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            // Responsive Mic Trigger Button with Pulsing Scale Animation
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(72.dp)
+                                    .scale(if (uiState is ComplaintVoiceUiState.Recording) pulseScale else 1.0f)
+                                    .clip(CircleShape)
+                                    .background(if (uiState is ComplaintVoiceUiState.Recording) WarmTerracotta else SovereignNavy)
+                                    .clickable { toggleRecording() }
+                                    .testTag("voice_complaint_mic_button")
+                            ) {
+                                Icon(
+                                    imageVector = if (uiState is ComplaintVoiceUiState.Recording) Icons.Default.MicOff else Icons.Default.Mic,
+                                    contentDescription = "Microphone STT",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(36.dp)
+                                )
+                            }
+
+                            if (uiState is ComplaintVoiceUiState.Recording) {
+                                Spacer(modifier = Modifier.height(12.dp))
+                                LiveWaveformCanvas(
+                                    amplitudes = waveforms,
+                                    isRecording = true,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(36.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
                 // Live Editable Transcript / Text Statement Panel
                 item {
                     Card(
@@ -346,7 +453,7 @@ fun VoiceComplaintRegistrationScreen(
                     }
                 }
 
-            // Confirm & Generate Action Button
+            // Confirm & Generate Action Button with Pure White High-Contrast Typography
             item {
                 AnimatedVisibility(
                     visible = transcript.isNotBlank() && uiState !is ComplaintVoiceUiState.Generating,
@@ -356,10 +463,9 @@ fun VoiceComplaintRegistrationScreen(
                     Button(
                         onClick = { viewModel.generateComplaintFromTranscript() },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFFFFFDBCF),
-                            contentColor = DeepImperialNavy
+                            containerColor = SovereignNavy,
+                            contentColor = Color.White
                         ),
-                        border = androidx.compose.foundation.BorderStroke(1.5.dp, DeepImperialNavy),
                         shape = RoundedCornerShape(14.dp),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -369,7 +475,7 @@ fun VoiceComplaintRegistrationScreen(
                         Icon(
                             imageVector = Icons.Default.Description,
                             contentDescription = null,
-                            tint = DeepImperialNavy,
+                            tint = Color.White,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -377,7 +483,7 @@ fun VoiceComplaintRegistrationScreen(
                             text = if (isTa) "உறுதிசெய்து மனுவை உருவாக்குங்கள்" else "Confirm & Generate Legal Notice",
                             style = MaterialTheme.typography.titleSmall.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = DeepImperialNavy
+                                color = Color.White
                             )
                         )
                     }

@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Privacy Policy for Justra Legal Intelligence Platform. Learn how we protect your legal grievances, speech dictation, location, and data privacy.">
+    <meta name="author" content="Justra Engineering & Privacy Team">
+    <title>Privacy Policy | Justra Legal Intelligence Platform</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-primary: #0b0f19;
+            --bg-secondary: #111827;
+            --bg-card: rgba(17, 24, 39, 0.75);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(99, 102, 241, 0.4);
+            
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            
+            --accent-primary: #6366f1;
+            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+            --accent-glow: rgba(99, 102, 241, 0.25);
+            --cyan-accent: #38bdf8;
+            --emerald-accent: #10b981;
+            --amber-accent: #f59e0b;
+            
+            --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --shadow-subtle: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-primary: #f8fafc;
+                --bg-secondary: #ffffff;
+                --bg-card: rgba(255, 255, 255, 0.9);
+                --border-color: rgba(0, 0, 0, 0.08);
+                --border-hover: rgba(99, 102, 241, 0.4);
+                
+                --text-primary: #0f172a;
+                --text-secondary: #475569;
+                --text-muted: #64748b;
+                
+                --accent-glow: rgba(99, 102, 241, 0.12);
+                --shadow-subtle: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-family: var(--font-sans);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Glow Background */
+        .ambient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .glow-orb-1 {
+            position: absolute;
+            top: -10%;
+            right: -5%;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            filter: blur(80px);
+            opacity: 0.6;
+        }
+
+        .glow-orb-2 {
+            position: absolute;
+            bottom: -10%;
+            left: -5%;
+            width: 45vw;
+            height: 45vw;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
+            filter: blur(80px);
+            opacity: 0.5;
+        }
+
+        /* Header Navigation */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            background: rgba(11, 15, 25, 0.85);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.25rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 800;
+            font-size: 1.35rem;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--accent-gradient);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-weight: 900;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        .brand-badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: var(--cyan-accent);
+            border-radius: 99px;
+            font-family: var(--font-mono);
+            font-weight: 500;
+        }
+
+        .nav-meta {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 3.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Sidebar Navigation */
+        aside.toc-sidebar {
+            position: sticky;
+            top: 6rem;
+            height: fit-content;
+            max-height: calc(100vh - 8rem);
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .toc-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .toc-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            border-left: 2px solid var(--border-color);
+        }
+
+        .toc-link {
+            display: block;
+            padding: 0.45rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            transition: all 0.2s ease;
+        }
+
+        .toc-link:hover, .toc-link.active {
+            color: var(--accent-primary);
+            background: rgba(99, 102, 241, 0.08);
+            border-left: 2px solid var(--accent-primary);
+            margin-left: -2px;
+        }
+
+        /* Content Formatting */
+        main.policy-content {
+            min-width: 0;
+        }
+
+        .policy-header {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .policy-title {
+            font-size: 2.75rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+            background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .policy-subtitle {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            max-width: 720px;
+            margin-bottom: 1.5rem;
+        }
+
+        .meta-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.85rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 99px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+        }
+
+        .pill-success {
+            border-color: rgba(16, 185, 129, 0.3);
+            color: var(--emerald-accent);
+            background: rgba(16, 185, 129, 0.08);
+        }
+
+        /* Summary Card */
+        .summary-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(56, 189, 248, 0.06) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: var(--radius-lg);
+            padding: 1.75rem;
+            margin-bottom: 3rem;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .summary-card h3 {
+            font-size: 1.1rem;
+            color: var(--accent-primary);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .summary-card ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 0.85rem;
+            margin-top: 1rem;
+        }
+
+        .summary-card li {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+        }
+
+        .summary-card li::before {
+            content: "✓";
+            color: var(--emerald-accent);
+            font-weight: bold;
+        }
+
+        /* Section Formatting */
+        section.policy-section {
+            margin-bottom: 3.5rem;
+            scroll-margin-top: 6rem;
+        }
+
+        section.policy-section h2 {
+            font-size: 1.65rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.25rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        section.policy-section h2 .sec-num {
+            font-family: var(--font-mono);
+            color: var(--accent-primary);
+            font-size: 1.1rem;
+            background: rgba(99, 102, 241, 0.12);
+            padding: 0.2rem 0.6rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        p {
+            margin-bottom: 1.15rem;
+            color: var(--text-secondary);
+            font-size: 0.975rem;
+        }
+
+        ul, ol {
+            margin-bottom: 1.25rem;
+            padding-left: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        li strong {
+            color: var(--text-primary);
+        }
+
+        .grid-box-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+            margin: 1.5rem 0;
+        }
+
+        .info-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .info-box:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+        }
+
+        .info-box-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-box-desc {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .callout {
+            border-left: 4px solid var(--accent-primary);
+            background: rgba(99, 102, 241, 0.06);
+            padding: 1.25rem 1.5rem;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            margin: 1.5rem 0;
+        }
+
+        .callout-success {
+            border-left-color: var(--emerald-accent);
+            background: rgba(16, 185, 129, 0.08);
+        }
+
+        .callout-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 0.35rem;
+            color: var(--text-primary);
+        }
+
+        code {
+            font-family: var(--font-mono);
+            font-size: 0.85em;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            color: var(--cyan-accent);
+        }
+
+        footer {
+            margin-top: auto;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            padding: 3rem 2rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-primary);
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            aside.toc-sidebar {
+                display: none;
+            }
+
+            .policy-title {
+                font-size: 2.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Ambient Glow Background -->
+    <div class="ambient-bg">
+        <div class="glow-orb-1"></div>
+        <div class="glow-orb-2"></div>
+    </div>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="nav-container">
+            <a href="#" class="brand-logo">
+                <div class="brand-icon">J</div>
+                <span>JUSTRA <span style="font-weight:300; opacity:0.8;">(ஜஸ்ட்ரா)</span></span>
+                <span class="brand-badge">LEGAL INTEL</span>
+            </a>
+            <div class="nav-meta">
+                <span>Package: com.justra.app</span>
+                <span>Play Store Compliant</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+
+        <!-- Table of Contents Sidebar -->
+        <aside class="toc-sidebar">
+            <div class="toc-title">PRIVACY CHARTER</div>
+            <ul class="toc-list">
+                <li><a href="#overview" class="toc-link active">1. Platform Overview</a></li>
+                <li><a href="#zero-knowledge" class="toc-link">2. Zero-Knowledge Charter</a></li>
+                <li><a href="#data-collection" class="toc-link">3. Information Ingested</a></li>
+                <li><a href="#audio-speech" class="toc-link">4. Audio & Speech Processing</a></li>
+                <li><a href="#geolocation" class="toc-link">5. Location & Jurisdictions</a></li>
+                <li><a href="#ai-gemini" class="toc-link">6. AI Statutory Reasoning</a></li>
+                <li><a href="#storage-vault" class="toc-link">7. Storage & Security Vault</a></li>
+                <li><a href="#permissions" class="toc-link">8. Android Permissions</a></li>
+                <li><a href="#user-rights" class="toc-link">9. User Data Rights</a></li>
+                <li><a href="#compliance" class="toc-link">10. Global Regulatory Standards</a></li>
+                <li><a href="#contact" class="toc-link">11. Contact & Support</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="policy-content">
+
+            <!-- Policy Header -->
+            <div class="policy-header">
+                <h1 class="policy-title">Justra Privacy Policy & Legal Data Security Charter</h1>
+                <p class="policy-subtitle">
+                    Official Privacy Policy for Justra (ஜஸ்ட்ரா - <code>com.justra.app</code>). Designed to protect your legal dispute narratives, voice dictation, and statutory petitions with zero-knowledge hardware encryption.
+                </p>
+                <div class="meta-pills">
+                    <span class="pill">Effective Date: October 9, 2026</span>
+                    <span class="pill">Package ID: com.justra.app</span>
+                    <span class="pill pill-success">🔒 Zero-Knowledge Security</span>
+                </div>
+            </div>
+
+            <!-- Executive Summary Card -->
+            <div class="summary-card">
+                <h3><span>🛡️</span> Justra Privacy Commitments</h3>
+                <p>Justra is built to respect attorney-client confidentiality standards and user data sovereignty.</p>
+                <ul>
+                    <li>No registration or phone number required for basic legal intake and statutory research.</li>
+                    <li>Voice dictation is transcribed in real-time; raw audio is never recorded or saved.</li>
+                    <li>GPS location is used solely to lock host country law (e.g. BNS India, Housing Act UK, Uniform Tenant Act US).</li>
+                    <li>Encrypted vault using AES-256 GCM backed by Android KeyStore hardware root-of-trust.</li>
+                    <li>Zero advertising trackers, zero commercial data sales, and zero cross-app profiling.</li>
+                </ul>
+            </div>
+
+            <!-- Section 1 -->
+            <section id="overview" class="policy-section">
+                <h2><span class="sec-num">01</span> Platform Overview</h2>
+                <p>
+                    <strong>Justra (ஜஸ்ட்ரா)</strong> (Package: <code>com.justra.app</code>) is a borderless legal intelligence and statutory complaint drafting application. It empowers citizens, cross-border expats, travelers, and gig-economy workers to navigate legal rights across 10 indexed sovereign jurisdictions (India, United Kingdom, United States, Singapore, UAE, Germany, France, Japan, Canada, and Australia).
+                </p>
+            </section>
+
+            <!-- Section 2 -->
+            <section id="zero-knowledge" class="policy-section">
+                <h2><span class="sec-num">02</span> Zero-Knowledge Architecture & Privacy Guarantees</h2>
+                <p>
+                    Justra operates under a strict <strong>Privacy-by-Design</strong> paradigm:
+                </p>
+                <div class="callout callout-success">
+                    <div class="callout-title">The Justra Privacy Guarantee</div>
+                    Your legal disputes, drafted petitions, audio dictation, and saved case files belong strictly to you. We do not store central database records linking your real identity to your legal problems.
+                </div>
+                <ul>
+                    <li><strong>No Mandatory Account Sign-up:</strong> Draft formal complaints and map statutory laws anonymously.</li>
+                    <li><strong>Hardware Key Isolation:</strong> App configuration, PINs, and saved cases are stored on-device using Android <code>EncryptedSharedPreferences</code> encrypted with 256-bit AES-GCM keys managed by KeyStore.</li>
+                </ul>
+            </section>
+
+            <!-- Section 3 -->
+            <section id="data-collection" class="policy-section">
+                <h2><span class="sec-num">03</span> Information Ingested & Data Minimization</h2>
+                <p>
+                    We strictly minimize data ingestion to only what is necessary for statutory processing:
+                </p>
+
+                <div class="grid-box-container">
+                    <div class="info-box">
+                        <div class="info-box-title">📝 Legal Dispute Narrative</div>
+                        <div class="info-box-desc">
+                            Text or voice transcriptions entered by you describing tenant disputes, wage withholding, consumer complaints, or cyber fraud. Used solely to generate structured statutory analysis prompts.
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-box-title">🌐 Jurisdiction ISO Code</div>
+                        <div class="info-box-desc">
+                            The 2-letter country code (e.g. <code>IN</code>, <code>GB</code>, <code>US</code>) resolved from GPS or selected manually to ensure proper legal statutory prompt routing.
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-box-title">📱 Device Telemetry</div>
+                        <div class="info-box-desc">
+                            Non-identifiable operating system version, device model, and crash logs to maintain system stability across Android devices.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 4 -->
+            <section id="audio-speech" class="policy-section">
+                <h2><span class="sec-num">04</span> Audio & Multilingual Speech Processing</h2>
+                <p>
+                    Justra features real-time voice dictation across multiple spoken locales (Tamil <code>ta-IN</code>, English <code>en-IN</code>/<code>en-US</code>, Hindi <code>hi-IN</code>, Spanish, French, German, Japanese, Arabic):
+                </p>
+                <ul>
+                    <li><strong>Real-Time Streaming Only:</strong> Microphone streams are captured solely during active dictation via Android's native <code>SpeechRecognizer</code> service.</li>
+                    <li><strong>Zero Audio File Storage:</strong> Audio files are <em>never recorded or saved to storage</em>. Dictation audio is instantly converted into text tokens and cleared from RAM.</li>
+                    <li><strong>Lifecycle Release:</strong> Microphone resources are forcefully released the moment voice dictation is paused or the screen is navigated away (<code>onDispose</code>).</li>
+                </ul>
+            </section>
+
+            <!-- Section 5 -->
+            <section id="geolocation" class="policy-section">
+                <h2><span class="sec-num">05</span> Geolocation & Dual-Mode Jurisdiction Engine</h2>
+                <p>
+                    Justra's Dual-Mode Jurisdiction Engine dynamically routes your problem narrative to host country statutory laws:
+                </p>
+                <ol>
+                    <li>
+                        <strong>Mode 1: AUTO GPS Mode:</strong> Uses Android's <code>FusedLocationProviderClient</code> and <code>Geocoder</code> to detect host country ISO code. Coordinates are immediately discarded from memory once the country is locked. Continuous location tracking is <strong>never performed</strong>.
+                    </li>
+                    <li>
+                        <strong>Mode 2: MANUAL OVERRIDE Mode:</strong> Choose any of the 10 supported sovereign jurisdictions manually without granting location permissions.
+                    </li>
+                </ol>
+            </section>
+
+            <!-- Section 6 -->
+            <section id="ai-gemini" class="policy-section">
+                <h2><span class="sec-num">06</span> AI Statutory Reasoning & Gemini Integration</h2>
+                <p>
+                    Statutory classification, BNS/IPC mapping, legal petition drafting, and vernacular guidance summaries are powered by Google Gemini 2.5 Flash AI model integration:
+                </p>
+                <ul>
+                    <li><strong>Encrypted Transport:</strong> Payloads sent to the Gemini API travel over TLS 1.3 encrypted HTTPS channels using Moshi JSON parsing.</li>
+                    <li><strong>No LLM Training on User Data:</strong> API requests via enterprise endpoints are transient and are <strong>not used to train public AI models</strong>.</li>
+                    <li><strong>Client-Side Entropy Gate:</strong> Problem inputs are validated locally by <code>LegalInputValidator</code> to reject keyboard gibberish before network calls.</li>
+                </ul>
+            </section>
+
+            <!-- Section 7 -->
+            <section id="storage-vault" class="policy-section">
+                <h2><span class="sec-num">07</span> Storage, Local Vault & PDF Exporting</h2>
+                <p>
+                    All legal drafts, saved cases, and PDF exports stay strictly on your device:
+                </p>
+                <ul>
+                    <li><strong>Hardware KeyStore Vault:</strong> Sensitive preferences and PIN authentications are stored using <code>EncryptedSharedPreferences</code> backed by device hardware.</li>
+                    <li><strong>PDF Petition Exporting:</strong> PDF petitions generated via <code>android.graphics.pdf.PdfDocument</code> are saved directly to your local device storage. They are never backed up to remote cloud servers by Justra.</li>
+                    <li><strong>Vault Zeroization:</strong> You can purge all stored cases and local app data at any time from app settings.</li>
+                </ul>
+            </section>
+
+            <!-- Section 8 -->
+            <section id="permissions" class="policy-section">
+                <h2><span class="sec-num">08</span> Android Device Runtime Permissions Rationale</h2>
+                <p>
+                    In accordance with Google Play Developer Policies, here is why Justra requests specific Android permissions:
+                </p>
+
+                <div class="grid-box-container">
+                    <div class="info-box">
+                        <div class="info-box-title"><code>RECORD_AUDIO</code></div>
+                        <div class="info-box-desc">
+                            Required strictly for voice-to-text dictation. Audio is transcribed transiently and never saved to disk.
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-box-title"><code>ACCESS_FINE_LOCATION</code> / <code>COARSE</code></div>
+                        <div class="info-box-desc">
+                            Required solely for resolving host country legal code in Auto-GPS mode. Can be revoked at any time in favor of Manual Jurisdiction Override.
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-box-title"><code>USE_BIOMETRIC</code> / <code>BIOMETRIC_STRONG</code></div>
+                        <div class="info-box-desc">
+                            Used to unlock local application vault screens using fingerprint or facial recognition via Android <code>BiometricPrompt</code>.
+                        </div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-box-title"><code>POST_NOTIFICATIONS</code></div>
+                        <div class="info-box-desc">
+                            Used to notify users when long petition drafts complete processing.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 9 -->
+            <section id="user-rights" class="policy-section">
+                <h2><span class="sec-num">09</span> User Data Rights & Control</h2>
+                <p>
+                    Justra provides total ownership over your data:
+                </p>
+                <ul>
+                    <li><strong>Right to Access & Export:</strong> Export any generated legal petition directly to PDF format at any time.</li>
+                    <li><strong>Right to Erasure (Zeroization):</strong> Clearing App Storage or uninstalling the app permanently deletes all cryptographic keys and saved petition drafts.</li>
+                </ul>
+            </section>
+
+            <!-- Section 10 -->
+            <section id="compliance" class="policy-section">
+                <h2><span class="sec-num">10</span> Global Statutory & Regulatory Compliance</h2>
+                <p>
+                    Justra complies with international privacy frameworks including GDPR, CCPA/CPRA, India Digital Personal Data Protection (DPDP) Act 2023, and COPPA child privacy policies.
+                </p>
+            </section>
+
+            <!-- Section 11 -->
+            <section id="contact" class="policy-section">
+                <h2><span class="sec-num">11</span> Privacy Office & Support Contact</h2>
+                <p>
+                    For any privacy inquiries, statutory compliance requests, or security feedback regarding Justra:
+                </p>
+
+                <div class="callout callout-success">
+                    <div class="callout-title">Justra Privacy Office</div>
+                    <strong>Application Name:</strong> Justra (ஜஸ்ட்ரா)<br>
+                    <strong>Package ID:</strong> <code>com.justra.app</code><br>
+                    <strong>Privacy Contact Email:</strong> <code>privacy@justra.app</code> / <code>support@justra.app</code>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div>
+                © 2026 Justra Legal Intelligence Platform. All rights reserved. Upholding global citizen rights & privacy.
+            </div>
+            <div class="footer-links">
+                <a href="#overview">Back to Top</a>
+                <a href="#zero-knowledge">Zero-Knowledge Charter</a>
+                <a href="#contact">Contact Privacy Office</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- TOC Scroll Highlight Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const observerOptions = {
+                root: null,
+                rootMargin: '-20% 0px -70% 0px',
+                threshold: 0
+            };
+
+            const sections = document.querySelectorAll('section.policy-section');
+            const navLinks = document.querySelectorAll('.toc-link');
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        navLinks.forEach(link => {
+                            if (link.getAttribute('href') === `#${id}`) {
+                                link.classList.add('active');
+                            } else {
+                                link.classList.remove('active');
+                            }
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => observer.observe(section));
+        });
+    </script>
+</body>
+</html>

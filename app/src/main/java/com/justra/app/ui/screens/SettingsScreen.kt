@@ -1,19 +1,20 @@
 package com.justra.app.ui.screens
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,8 +24,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.justra.app.domain.model.LanguagePreference
@@ -38,45 +37,28 @@ fun SettingsScreen(
     currentLanguage: LanguagePreference,
     onToggleLanguage: () -> Unit,
     onBackClick: () -> Unit,
-    onNavigateToLogin: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val isTa = currentLanguage == LanguagePreference.TAMIL
-    val securityManager = viewModel.securityManager
 
-    // Security Preferences State
-    var biometricEnabled by remember { mutableStateOf(securityManager.isBiometricLockEnabled()) }
-    var autoLockTimeout by remember { mutableStateOf(securityManager.getAutoLockTimeoutMinutes()) }
-    var stealthModeEnabled by remember { mutableStateOf(securityManager.isStealthModeEnabled()) }
+    // Notification Preferences
+    var caseUpdatesEnabled by remember { mutableStateOf(true) }
+    var legalRemindersEnabled by remember { mutableStateOf(true) }
 
-    // Language & Interface Preferences
-    var dualSubtitleEnabled by remember { mutableStateOf(securityManager.isDualSubtitleEnabled()) }
-
-    // Privacy & Data Sovereignty State
-    var aiTelemetryEnabled by remember { mutableStateOf(securityManager.isAiTelemetryEnabled()) }
-    var autoPurgeDocsEnabled by remember { mutableStateOf(securityManager.isAutoPurgeDocsEnabled()) }
-    var offlineForced by remember { mutableStateOf(securityManager.isOfflineModeForced()) }
+    // Theme state (0: System Default, 1: Light Mode, 2: Dark Mode)
+    var selectedThemeMode by remember { mutableStateOf(1) } // Default to Light Mode as per design
 
     // Dialog States
-    var showPinChangeDialog by remember { mutableStateOf(false) }
-    var showExportDialog by remember { mutableStateOf(false) }
-    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
-    var showLegalDisclaimer by remember { mutableStateOf(false) }
-    var showPrivacyPolicy by remember { mutableStateOf(false) }
-    var showTermsOfService by remember { mutableStateOf(false) }
-    var exportedJsonString by remember { mutableStateOf("") }
-    var deleteConfirmationInput by remember { mutableStateOf("") }
-    var newPinInput by remember { mutableStateOf("") }
-    var confirmPinInput by remember { mutableStateOf("") }
-    var pinVisibility by remember { mutableStateOf(false) }
+    var showTermsDialog by remember { mutableStateOf(false) }
+    var showPrivacyDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = if (isTa) "செயலி அமைப்புகள்" else "App Settings & Security",
+                        text = if (isTa) "அமைப்புகள்" else "Settings",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.Bold,
@@ -85,7 +67,10 @@ fun SettingsScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(
+                        onClick = onBackClick,
+                        modifier = Modifier.testTag("settings_back_button")
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
@@ -93,7 +78,7 @@ fun SettingsScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = WarmIvorySurface)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = WarmCanvasBg)
             )
         },
         containerColor = WarmCanvasBg,
@@ -107,301 +92,281 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(top = 12.dp, bottom = 32.dp)
         ) {
-            // 1. Language & Preference Settings
+            // 1. Notification Preferences Card
             item {
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = WarmIvorySurface),
-                    border = BorderStroke(1.dp, SovereignNavy.copy(alpha = 0.12f)),
+                    colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                    border = BorderStroke(1.dp, CardBorderStroke),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        SettingsSectionHeader(
-                            icon = Icons.Default.Language,
-                            title = if (isTa) "மொழி & இடைமுகம்" else "Language & Interface"
-                        )
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Notifications,
+                                contentDescription = null,
+                                tint = SovereignNavy,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (isTa) "அறிவிப்பு முன்னுரிமைகள்" else "Notification Preferences",
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = SovereignNavy,
+                                    fontFamily = FontFamily.Serif
+                                )
+                            )
+                        }
 
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // Language Selector
+                        // Case Progress Updates Toggle
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onToggleLanguage() }
-                                .padding(vertical = 8.dp),
+                            modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column {
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = if (isTa) "முதன்மை பயன்பாட்டு மொழி" else "Primary App Language",
-                                    style = MaterialTheme.typography.titleSmall.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        color = TextPrimaryDark
+                                    text = if (isTa) "வழக்கு நேரலை முன்னேற்றங்கள்" else "Case Progress Updates",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = SovereignNavy
                                     )
                                 )
                                 Text(
-                                    text = if (isTa) "ஆங்கிலம் / தமிழ் இடைமுகம்" else "English / Tamil interface switching",
+                                    text = if (isTa) "நீதிமன்ற நிலை மற்றும் மனு நிலை மாற்ற அறிவிப்புகள்" else "Receive notifications when case hearing dates or status change",
                                     style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                                 )
                             }
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = SovereignNavy
+                            Switch(
+                                checked = caseUpdatesEnabled,
+                                onCheckedChange = { caseUpdatesEnabled = it },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = Color.White,
+                                    checkedTrackColor = SovereignNavy
+                                )
+                            )
+                        }
+
+                        HorizontalDivider(color = CardBorderStroke.copy(alpha = 0.5f))
+
+                        // Legal Reminders Toggle
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (isTa) "சட்ட காலக்கெடு நினைவூட்டல்கள்" else "Legal Reminders & Limitation Alerts",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = SovereignNavy
+                                    )
+                                )
+                                Text(
+                                    text = if (isTa) "காலக்கெடு சட்டம் சார்ந்த அவசர எச்சரிக்கைகள்" else "Statutory limitation period countdown and notice response deadlines",
+                                    style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
+                                )
+                            }
+                            Switch(
+                                checked = legalRemindersEnabled,
+                                onCheckedChange = { legalRemindersEnabled = it },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = Color.White,
+                                    checkedTrackColor = SovereignNavy
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+
+            // 2. Appearance & Theme Card
+            item {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                    border = BorderStroke(1.dp, CardBorderStroke),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Palette,
+                                contentDescription = null,
+                                tint = SovereignNavy,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (isTa) "தோற்றம் & தீம் (Appearance & Theme)" else "Appearance & Theme",
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = SovereignNavy,
+                                    fontFamily = FontFamily.Serif
+                                )
+                            )
+                        }
+
+                        val themeOptions = listOf(
+                            0 to if (isTa) "கணினி அமைப்பு (System Default)" else "System Default",
+                            1 to if (isTa) "ஒளி தீம் (Light Mode)" else "Light Mode",
+                            2 to if (isTa) "இருண்ட தீம் (Dark Mode)" else "Dark Mode"
+                        )
+
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            themeOptions.forEach { (mode, label) ->
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    RadioButton(
+                                        selected = selectedThemeMode == mode,
+                                        onClick = { selectedThemeMode = mode },
+                                        colors = RadioButtonDefaults.colors(selectedColor = SovereignNavy)
+                                    )
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontWeight = if (selectedThemeMode == mode) FontWeight.Bold else FontWeight.Normal,
+                                            color = SovereignNavy
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 3. Legal & Terms Card
+            item {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                    border = BorderStroke(1.dp, CardBorderStroke),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Description,
+                                contentDescription = null,
+                                tint = SovereignNavy,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (isTa) "சட்டப்பூர்வ கொள்கைகள்" else "Legal & Compliance",
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = SovereignNavy,
+                                    fontFamily = FontFamily.Serif
+                                )
+                            )
+                        }
+
+                        // Terms of Service Button
+                        TextButton(
+                            onClick = { showTermsDialog = true },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("settings_terms_button")
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = if (isTa) "தமிழ் (Selected)" else "English (Selected)",
-                                    color = Color.White,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                                )
-                            }
-                        }
-
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = Color.Gray.copy(alpha = 0.2f))
-
-                        // Dual Subtitles
-                        SettingsSwitchRow(
-                            title = if (isTa) "இருமொழி துணைத்தலைப்புகள்" else "Dual Subtitles Display",
-                            subtitle = if (isTa) "தமிழ் மற்றும் ஆங்கிலத்தில் சட்ட விபரங்களை காண்க" else "Show both English & Tamil titles side-by-side",
-                            checked = dualSubtitleEnabled,
-                            onCheckedChange = {
-                                dualSubtitleEnabled = it
-                                securityManager.setDualSubtitleEnabled(it)
-                            }
-                        )
-                    }
-                }
-            }
-
-            // 2. Security & Biometric Lock Settings
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = WarmIvorySurface),
-                    border = BorderStroke(1.dp, SovereignNavy.copy(alpha = 0.12f)),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        SettingsSectionHeader(
-                            icon = Icons.Default.Security,
-                            title = if (isTa) "பாதுகாப்பு & பயோமெட்ரிக் பூட்டு" else "Security & Biometric Lock"
-                        )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // Biometric Switch
-                        SettingsSwitchRow(
-                            title = if (isTa) "பயோமெட்ரிக் / கைரேகை பூட்டு" else "Fingerprint / Biometric Lock",
-                            subtitle = if (isTa) "செயலியை திறக்க சாதன கைரேகையை பயன்படுத்தவும்" else "Require fingerprint scan to open app",
-                            checked = biometricEnabled,
-                            onCheckedChange = {
-                                biometricEnabled = it
-                                securityManager.setBiometricLockEnabled(it)
-                            }
-                        )
-
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = Color.Gray.copy(alpha = 0.2f))
-
-                        // Reset Security PIN
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { showPinChangeDialog = true }
-                                .padding(vertical = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column {
-                                Text(
-                                    text = if (isTa) "பாதுகாப்பு PIN மாற்று" else "Change Passcode / PIN",
-                                    style = MaterialTheme.typography.titleSmall.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        color = TextPrimaryDark
+                                    text = if (isTa) "சட்ட மறுப்பு & சேவை விதிமுறைகள்" else "Legal Disclaimer & Terms of Service",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = SovereignNavy
                                     )
                                 )
+                                Icon(
+                                    imageVector = Icons.Default.ChevronRight,
+                                    contentDescription = null,
+                                    tint = SovereignNavy
+                                )
+                            }
+                        }
+
+                        HorizontalDivider(color = CardBorderStroke.copy(alpha = 0.5f))
+
+                        // Privacy Policy Button
+                        TextButton(
+                            onClick = { showPrivacyDialog = true },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("settings_privacy_button")
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Text(
-                                    text = if (isTa) "4-இலக்க அவசர பயன்பாட்டு PIN" else "Update 4-digit master PIN",
-                                    style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
+                                    text = if (isTa) "தனியுரிமைக் கொள்கை" else "Privacy Policy",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = SovereignNavy
+                                    )
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.ChevronRight,
+                                    contentDescription = null,
+                                    tint = SovereignNavy
                                 )
                             }
-                            Icon(imageVector = Icons.Default.Key, contentDescription = "PIN", tint = SovereignNavy)
-                        }
-
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = Color.Gray.copy(alpha = 0.2f))
-
-                        // Stealth Mode
-                        SettingsSwitchRow(
-                            title = if (isTa) "மறைமுக பயன்முறை (Stealth Mode)" else "Stealth Privacy Screen",
-                            subtitle = if (isTa) "சமீபத்திய பயன்பாட்டு திரை காட்சிகளை தடுக்கும்" else "Prevent screenshots & mask recent apps preview",
-                            checked = stealthModeEnabled,
-                            onCheckedChange = {
-                                stealthModeEnabled = it
-                                securityManager.setStealthModeEnabled(it)
-                            }
-                        )
-                    }
-                }
-            }
-
-            // 3. Privacy & Data Sovereignty Settings
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = WarmIvorySurface),
-                    border = BorderStroke(1.dp, SovereignNavy.copy(alpha = 0.12f)),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        SettingsSectionHeader(
-                            icon = Icons.Default.Policy,
-                            title = if (isTa) "தனியுரிமை & AI தரவு பாதுகாப்பு" else "Privacy & AI Data Sovereignty"
-                        )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // AI Telemetry
-                        SettingsSwitchRow(
-                            title = if (isTa) "அநாமதேய AI முன்னேற்ற தரவு" else "Anonymous AI Quality Telemetry",
-                            subtitle = if (isTa) "சட்ட மாதிரி துல்லியத்தை மேம்படுத்த உதவுகிறது" else "Allow anonymous metrics to improve Gemini AI responses",
-                            checked = aiTelemetryEnabled,
-                            onCheckedChange = {
-                                aiTelemetryEnabled = it
-                                securityManager.setAiTelemetryEnabled(it)
-                            }
-                        )
-
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = Color.Gray.copy(alpha = 0.2f))
-
-                        // Offline Mode Forced
-                        SettingsSwitchRow(
-                            title = if (isTa) "ஆஃப்லைன் பயன்முறையை கட்டாயப்படுத்து" else "Force Offline Local AI Engine",
-                            subtitle = if (isTa) "அனைத்து சட்ட பகுப்பாய்வுகளையும் சாதனத்தில் மட்டும் இயக்கும்" else "Process all legal analysis on-device only",
-                            checked = offlineForced,
-                            onCheckedChange = {
-                                offlineForced = it
-                                securityManager.setOfflineModeForced(it)
-                            }
-                        )
-                    }
-                }
-            }
-
-            // 4. Data Export & Account Reset
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    border = BorderStroke(1.dp, SovereignNavy.copy(alpha = 0.12f)),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        SettingsSectionHeader(
-                            icon = Icons.Default.Download,
-                            title = if (isTa) "காப்புப்பிரதி & கணக்கு மீட்டமைப்பு" else "Backup & Data Management"
-                        )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // Export Dossiers
-                        OutlinedButton(
-                            onClick = {
-                                exportedJsonString = securityManager.exportAllUserDataJson()
-                                showExportDialog = true
-                            },
-                            shape = RoundedCornerShape(10.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(imageVector = Icons.Default.Download, contentDescription = "Export")
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = if (isTa) "வழக்கு காப்புப்பிரதியை நகலெடு (Export JSON)" else "Export Dossiers & Evidence JSON",
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // Delete Data
-                        Button(
-                            onClick = { showDeleteConfirmDialog = true },
-                            colors = ButtonDefaults.buttonColors(containerColor = HennaRedAlertText),
-                            shape = RoundedCornerShape(10.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(imageVector = Icons.Default.DeleteForever, contentDescription = "Delete")
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = if (isTa) "அனைத்து உள்ளூர் தரவுகளையும் நீக்கு" else "Clear Local App Storage & Reset",
-                                fontWeight = FontWeight.Bold
-                            )
                         }
                     }
                 }
             }
 
-            // 5. Legal & Compliance Section
+            // 4. App Version & Build Information Card
             item {
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = WarmIvorySurface),
-                    border = BorderStroke(1.dp, SovereignNavy.copy(alpha = 0.12f)),
+                    colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                    border = BorderStroke(1.dp, CardBorderStroke),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        SettingsSectionHeader(
-                            icon = Icons.Default.Info,
-                            title = if (isTa) "சட்ட பொறுப்புத்துறப்பு & தகவல்" else "Legal Compliance & Info"
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null,
+                            tint = SovereignNavy,
+                            modifier = Modifier.size(24.dp)
                         )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { showLegalDisclaimer = true }
-                                .padding(vertical = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
                             Text(
-                                text = if (isTa) "சட்ட பொறுப்புத்துறப்பு (Legal Disclaimer)" else "Judicial AI Disclaimer",
-                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, color = TextPrimaryDark)
-                            )
-                            Icon(imageVector = Icons.Default.Info, contentDescription = null, tint = SovereignNavy)
-                        }
-
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = Color.Gray.copy(alpha = 0.2f))
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { showPrivacyPolicy = true }
-                                .padding(vertical = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = if (isTa) "தனியுரிமை கொள்கை (Privacy Policy)" else "Privacy Policy & Zero-Knowledge Architecture",
-                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, color = TextPrimaryDark)
-                            )
-                            Icon(imageVector = Icons.Default.Policy, contentDescription = null, tint = SovereignNavy)
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // App Version Badge
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "Justra AI v2.1.2 • Gemini 3.6 Flash Engine Active",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    color = TextSecondaryDark,
-                                    fontWeight = FontWeight.Medium
+                                text = "Justra v1.0.0",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = SovereignNavy
                                 )
+                            )
+                            Text(
+                                text = if (isTa) "பாரதிய நியாய சன்ஹிதா (BNS 2023) ஆதரவு இயந்திரம்" else "Sovereign AI Legal Engine • Build 2026.10",
+                                style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                             )
                         }
                     }
@@ -410,213 +375,67 @@ fun SettingsScreen(
         }
     }
 
-    // PIN Reset Dialog
-    if (showPinChangeDialog) {
-        AlertDialog(
-            onDismissRequest = { showPinChangeDialog = false },
-            title = { Text(if (isTa) "புதிய PIN அமைக்க" else "Set New Security PIN") },
-            text = {
-                Column {
-                    OutlinedTextField(
-                        value = newPinInput,
-                        onValueChange = { if (it.length <= 4) newPinInput = it },
-                        label = { Text(if (isTa) "4-இலக்க புதிய PIN" else "New 4-digit PIN") },
-                        visualTransformation = if (pinVisibility) VisualTransformation.None else PasswordVisualTransformation(),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = confirmPinInput,
-                        onValueChange = { if (it.length <= 4) confirmPinInput = it },
-                        label = { Text(if (isTa) "உறுதிப்படுத்தவும்" else "Confirm PIN") },
-                        visualTransformation = if (pinVisibility) VisualTransformation.None else PasswordVisualTransformation(),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    if (newPinInput.length == 4 && newPinInput == confirmPinInput) {
-                        securityManager.saveSecurityPin(newPinInput)
-                        Toast.makeText(context, if (isTa) "PIN புதுப்பிக்கப்பட்டது" else "PIN Updated!", Toast.LENGTH_SHORT).show()
-                        showPinChangeDialog = false
-                    } else {
-                        Toast.makeText(context, if (isTa) "PIN பொருந்தவில்லை" else "PINs do not match", Toast.LENGTH_SHORT).show()
-                    }
-                }) {
-                    Text(if (isTa) "சேமி" else "Save")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showPinChangeDialog = false }) {
-                    Text(if (isTa) "ரத்து" else "Cancel")
-                }
-            }
-        )
-    }
-
-    // Export Dialog
-    if (showExportDialog) {
-        AlertDialog(
-            onDismissRequest = { showExportDialog = false },
-            title = { Text(if (isTa) "தரவு காப்புப்பிரதி" else "Export Encrypted Data") },
-            text = {
-                Text(if (isTa) "உங்கள் வழக்கு விபரங்கள் JSON வடிவில் உருவாக்கப்பட்டுள்ளது. அதை நகலெடுத்து பாதுகாப்பாக வைக்கலாம்." else "Your encrypted dossiers are prepared in JSON format. Copy to clipboard to backup.")
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    clipboard.setPrimaryClip(ClipData.newPlainText("Justra Export", exportedJsonString))
-                    Toast.makeText(context, if (isTa) "JSON நகலெடுக்கப்பட்டது!" else "JSON copied to Clipboard!", Toast.LENGTH_SHORT).show()
-                    showExportDialog = false
-                }) {
-                    Text(if (isTa) "நகலெடு (Copy)" else "Copy JSON")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showExportDialog = false }) {
-                    Text(if (isTa) "மூடு" else "Close")
-                }
-            }
-        )
-    }
-
-    // Delete Confirmation Dialog
-    if (showDeleteConfirmDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteConfirmDialog = false },
-            title = { Text(if (isTa) "அனைத்து தரவுகளையும் நீக்கவா?" else "Clear All App Data?") },
-            text = {
-                Column {
-                    Text(if (isTa) "இந்த நடவடிக்கை உங்கள் உள்ளூர் வழக்குகள் மற்றும் அமைப்புகளை நீக்கும்." else "This will permanently wipe local cases, biometrics, and preferences.")
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(if (isTa) "உறுதிப்படுத்த 'DELETE' என தட்டச்சு செய்க:" else "Type 'DELETE' to confirm:")
-                    Spacer(modifier = Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = deleteConfirmationInput,
-                        onValueChange = { deleteConfirmationInput = it },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        if (deleteConfirmationInput == "DELETE") {
-                            securityManager.clearAllUserData()
-                            Toast.makeText(context, if (isTa) "தரவு மீட்டமைக்கப்பட்டது" else "Data Wiped!", Toast.LENGTH_SHORT).show()
-                            showDeleteConfirmDialog = false
-                            onNavigateToLogin()
-                        }
-                    },
-                    colors = ButtonDefaults.textButtonColors(contentColor = HennaRedAlertText)
-                ) {
-                    Text(if (isTa) "நீக்கு (Wipe)" else "Confirm Reset")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteConfirmDialog = false }) {
-                    Text(if (isTa) "ரத்து" else "Cancel")
-                }
-            }
-        )
-    }
-
     // Legal Disclaimer Dialog
-    if (showLegalDisclaimer) {
+    if (showTermsDialog) {
         AlertDialog(
-            onDismissRequest = { showLegalDisclaimer = false },
-            title = { Text(if (isTa) "சட்ட பொறுப்புத்துறப்பு" else "Judicial AI Disclaimer") },
-            text = {
+            onDismissRequest = { showTermsDialog = false },
+            confirmButton = {
+                Button(
+                    onClick = { showTermsDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = SovereignNavy, contentColor = Color.White)
+                ) {
+                    Text(if (isTa) "புரிந்தது" else "I Understand", color = Color.White)
+                }
+            },
+            title = {
                 Text(
-                    text = if (isTa)
-                        "Justra AI ஒரு வழிகாட்டல் அமைப்பாகும். இது அதிகாரப்பூர்வ வழக்கறிஞர் ஆலோசனையை மாற்றாது. முக்கியமான சட்ட நடவடிக்கைகளுக்கு வழக்கறிஞரை அணுகவும்."
-                    else
-                        "Justra AI provides legal informational dossiers and assistance under Indian Law. It does not substitute professional legal counsel or advocate representation."
+                    text = if (isTa) "சட்ட மறுப்பு & சேவை விதிமுறைகள்" else "Legal Disclaimer & Terms of Service",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy)
                 )
             },
-            confirmButton = {
-                TextButton(onClick = { showLegalDisclaimer = false }) {
-                    Text(if (isTa) "புரிந்தது" else "Understood")
-                }
-            }
+            text = {
+                Text(
+                    text = if (isTa) {
+                        "ஜஸ்ட்ரா (Justra) செயற்கை நுண்ணறிவு சட்ட உதவி தளம் மட்டுமே. இது சட்ட விழிப்புணர்வு மற்றும் மனு உருவாக்கத்திற்கு உதவுகிறது. இது வழக்கறிஞரின் நேரடி ஆலோசனையை மாற்ற முடியாது."
+                    } else {
+                        "Justra provides automated legal intake, statutory mapping, and draft generation under Indian statutes (BNS 2023, BNSS 2023, BSA 2023, CPA 2019). Information generated does not constitute formal attorney-client legal advice."
+                    },
+                    style = MaterialTheme.typography.bodySmall.copy(color = TextPrimaryDark)
+                )
+            },
+            containerColor = SandstoneCard
         )
     }
 
     // Privacy Policy Dialog
-    if (showPrivacyPolicy) {
+    if (showPrivacyDialog) {
         AlertDialog(
-            onDismissRequest = { showPrivacyPolicy = false },
-            title = { Text(if (isTa) "தனியுரிமை கொள்கை" else "Zero-Knowledge Architecture") },
-            text = {
+            onDismissRequest = { showPrivacyDialog = false },
+            confirmButton = {
+                Button(
+                    onClick = { showPrivacyDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = SovereignNavy, contentColor = Color.White)
+                ) {
+                    Text(if (isTa) "மூடு" else "Close", color = Color.White)
+                }
+            },
+            title = {
                 Text(
-                    text = if (isTa)
-                        "உங்கள் சான்றுகள் மற்றும் சான்றாவணங்கள் உங்கள் சாதனத்தில் மட்டுமே சேமிக்கப்படும்."
-                    else
-                        "All evidence files and case files remain encrypted locally on your Android device."
+                    text = if (isTa) "தனியுரிமைக் கொள்கை" else "Privacy Policy",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy)
                 )
             },
-            confirmButton = {
-                TextButton(onClick = { showPrivacyPolicy = false }) {
-                    Text(if (isTa) "மூடு" else "Close")
-                }
-            }
-        )
-    }
-}
-
-@Composable
-private fun SettingsSectionHeader(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String
-) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(imageVector = icon, contentDescription = null, tint = SovereignNavy)
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.Bold,
-                color = TextPrimaryDark
-            )
-        )
-    }
-}
-
-@Composable
-private fun SettingsSwitchRow(
-    title: String,
-    subtitle: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimaryDark
+            text = {
+                Text(
+                    text = if (isTa) {
+                        "உங்கள் தகவல்கள் அனைத்தும் உங்கள் சாதனத்திலேயே பாதுகாப்பாக சேமிக்கப்படும். எந்தவொரு வெளி நபர்களுக்கும் தகவல்கள் பகிரப்படாது."
+                    } else {
+                        "Justra prioritizes your privacy. User profiles, case records, and dispute intakes are persisted locally using secure storage. No personal identification data is sold or transmitted to unauthorized third parties."
+                    },
+                    style = MaterialTheme.typography.bodySmall.copy(color = TextPrimaryDark)
                 )
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
-            )
-        }
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.White,
-                checkedTrackColor = SovereignNavy
-            )
+            },
+            containerColor = SandstoneCard
         )
     }
 }
