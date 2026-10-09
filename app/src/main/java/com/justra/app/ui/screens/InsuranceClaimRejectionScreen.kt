@@ -51,18 +51,19 @@ fun InsuranceClaimRejectionScreen(
         ) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SovereignNavy),
+                colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                border = BorderStroke(1.dp, CardBorderStroke),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (isTa) "🛡️ ரூ. 50 லட்சம் வரையிலான காப்பீட்டு புகார்களுக்கு இலவச ஓம்பட்ஸ்மேன்" else "🛡️ Free Ombudsman Resolution for Claims up to ₹50 Lakhs",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Serif)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy, fontFamily = FontFamily.Serif)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (isTa) "காப்பீட்டு நிறுவனம் கோரிக்கையை நிராகரித்தால் 30 நாட்களில் BNS/IRDAI ஓம்பட்ஸ்மேனிடம் மேல்முறையீடு செய்யலாம்." else "File complaint to Insurance Ombudsman within 1 year of claim rejection without advocate fees.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                     )
                 }
             }

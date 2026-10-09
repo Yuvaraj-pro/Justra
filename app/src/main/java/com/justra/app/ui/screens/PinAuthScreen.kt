@@ -69,6 +69,7 @@ import com.justra.app.ui.theme.SandstoneCard
 import com.justra.app.ui.theme.SovereignNavy
 import com.justra.app.ui.theme.TextPrimaryDark
 import com.justra.app.ui.theme.TextSecondaryDark
+import com.justra.app.ui.theme.TextOnAlertCrimson
 import com.justra.app.ui.theme.VerifiedSageGreen
 import com.justra.app.ui.theme.WarmCanvasBg
 import com.justra.app.ui.theme.nyayaOutlinedTextFieldColors
@@ -235,13 +236,12 @@ fun PinAuthScreen(
                     .fillMaxWidth()
                     .testTag("pin_auth_input_field")
             )
-
             // Error Display Banner
             if (errorMessage != null) {
                 Text(
                     text = errorMessage ?: "",
                     style = MaterialTheme.typography.bodySmall.copy(
-                        color = AlertCrimson,
+                        color = TextOnAlertCrimson,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
                     ),

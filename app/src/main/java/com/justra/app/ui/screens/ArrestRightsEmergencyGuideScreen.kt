@@ -51,18 +51,19 @@ fun ArrestRightsEmergencyGuideScreen(
         ) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SovereignNavy),
+                colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                border = BorderStroke(1.dp, CardBorderStroke),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (isTa) "🚨 24 மணி நேரத்திற்குள் நடுவர் முன் ஆஜர்படுத்தப்பட வேண்டும்" else "🚨 Mandatory 24-Hour Production Before Magistrate",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Serif)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy, fontFamily = FontFamily.Serif)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (isTa) "கைது செய்யப்பட்ட 24 மணி நேரத்திற்குள் நீதிபதி முன் ஆஜர்படுத்தப்பட வேண்டும். உறவினருக்கு தகவல் தெரிவிக்க உரிமை உண்டு." else "Sec 58 BNSS mandates production before Judicial Magistrate within 24 hours. Right to inform a friend/relative immediately.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                     )
                 }
             }

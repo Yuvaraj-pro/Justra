@@ -446,7 +446,7 @@ fun ChatAndVoiceScreen(
                         Icon(
                             imageVector = Icons.Default.ErrorOutline,
                             contentDescription = null,
-                            tint = AlertCrimson,
+                            tint = TextOnAlertCrimson,
                             modifier = Modifier.size(20.dp)
                         )
                         Text(

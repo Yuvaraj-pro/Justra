@@ -51,18 +51,19 @@ fun SeniorCitizenMaintenanceScreen(
         ) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SovereignNavy),
+                colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                border = BorderStroke(1.dp, CardBorderStroke),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (isTa) "👴 90 நாட்களுக்குள் பராமரிப்புத் தொகை & சொத்து ரத்து" else "👴 90-Day Maintenance Order & Property Transfer Revocation",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Serif)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy, fontFamily = FontFamily.Serif)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (isTa) "RDO தீர்ப்பாயத்தில் வழக்கறிஞர் இல்லாமல் மனு தாக்கல் செய்யலாம். மாதம் ரூ. 10,000 வரை ஜீவனாம்சம் பெற உரிமை." else "Direct petition to Sub-Divisional Magistrate (RDO Tribunal). Revoke gift deeds if children refuse maintenance under Sec 23.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                     )
                 }
             }

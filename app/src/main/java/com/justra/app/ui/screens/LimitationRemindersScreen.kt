@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.justra.app.domain.model.LanguagePreference
 import com.justra.app.ui.theme.SovereignNavy
+import com.justra.app.ui.theme.WarmIvorySurface
 import com.justra.app.ui.viewmodel.NyayaMateViewModel
 
 data class LimitationClockItem(
@@ -78,9 +79,9 @@ fun LimitationRemindersScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = SovereignNavy,
-                    titleContentColor = Color(0xFFFAF7F2),
-                    navigationIconContentColor = Color(0xFFFAF7F2)
+                    containerColor = WarmIvorySurface,
+                    titleContentColor = SovereignNavy,
+                    navigationIconContentColor = SovereignNavy
                 )
             )
         },

@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.justra.app.domain.model.DisputeCategory
 import com.justra.app.domain.model.LanguagePreference
 import com.justra.app.ui.theme.SovereignNavy
+import com.justra.app.ui.theme.WarmIvorySurface
 import com.justra.app.ui.viewmodel.NyayaMateViewModel
 import com.justra.app.util.LegalInputValidator
 
@@ -59,9 +60,9 @@ fun NewGrievanceScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = SovereignNavy,
-                    titleContentColor = Color(0xFFFAF7F2),
-                    navigationIconContentColor = Color(0xFFFAF7F2)
+                    containerColor = WarmIvorySurface,
+                    titleContentColor = SovereignNavy,
+                    navigationIconContentColor = SovereignNavy
                 )
             )
         },

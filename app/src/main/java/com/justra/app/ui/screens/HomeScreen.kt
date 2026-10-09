@@ -111,8 +111,9 @@ fun HomeScreen(
             item {
                 Card(
                     shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = SovereignNavy),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+                    colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                    border = BorderStroke(1.dp, CardBorderStroke),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(18.dp)) {
@@ -127,14 +128,14 @@ fun HomeScreen(
                                     style = MaterialTheme.typography.titleLarge.copy(
                                         fontFamily = FontFamily.Serif,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.White
+                                        color = SovereignNavy
                                     )
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = if (isTa) "இந்திய சட்ட பாதுகாப்பு | தமிழ் & ஆங்கிலம்" else "Structured Judicial Dossiers & Voice Assistant",
                                     style = MaterialTheme.typography.bodySmall.copy(
-                                        color = Color.White.copy(alpha = 0.8f)
+                                        color = TextSecondaryDark
                                     )
                                 )
                             }

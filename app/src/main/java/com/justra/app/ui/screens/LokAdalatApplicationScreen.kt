@@ -51,18 +51,19 @@ fun LokAdalatApplicationScreen(
         ) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SovereignNavy),
+                colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                border = BorderStroke(1.dp, CardBorderStroke),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (isTa) "🤝 மக்கள் நீதிமன்றத் தீர்ப்பு சிவில் நீதிமன்றத் தீர்ப்புக்கு இணையானது" else "🤝 Binding Statutory Award Equivalent to Civil Court Decree",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Serif)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy, fontFamily = FontFamily.Serif)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (isTa) "நீதிமன்றக் கட்டணம் இல்லாமல் கட்ட பஞ்சாயத்து இல்லாமல் சம்மதத்துடன் தீர்வு காணலாம். மேல்முறையீடு கிடையாது." else "Zero court fees. Lok Adalat award is final & unappealable under Sec 21 of Legal Services Authorities Act.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                     )
                 }
             }

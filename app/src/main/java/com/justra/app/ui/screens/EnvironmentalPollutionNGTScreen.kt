@@ -51,18 +51,19 @@ fun EnvironmentalPollutionNGTScreen(
         ) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SovereignNavy),
+                colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                border = BorderStroke(1.dp, CardBorderStroke),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (isTa) "🌱 ஒலி/காற்று/நீர் மாசுபாட்டிற்கு உடனடி தடை உத்தரவு" else "🌱 Immediate Injunction Against Air/Water/Noise Pollution",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Serif)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy, fontFamily = FontFamily.Serif)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (isTa) "பொதுமக்களின் சுகாதாரத்தை பாதிக்கும் சட்டவிரோத ஆலைகள் மற்றும் கழிவு கொட்டுவதற்கு எதிராக NGT புகார் அளிக்கலாம்." else "Statutory right under Article 21 & NGT Act 2010 to file public environmental grievance against polluting industries.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                     )
                 }
             }

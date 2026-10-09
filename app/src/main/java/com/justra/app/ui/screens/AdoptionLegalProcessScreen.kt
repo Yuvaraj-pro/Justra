@@ -51,18 +51,19 @@ fun AdoptionLegalProcessScreen(
         ) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SovereignNavy),
+                colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                border = BorderStroke(1.dp, CardBorderStroke),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (isTa) "👶 CARA அங்கீகாரம் மூலம் தத்தெடுப்பது மட்டுமே சட்டப்பூர்வமானது" else "👶 CARA Registration is Mandated Under Law",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Serif)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy, fontFamily = FontFamily.Serif)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (isTa) "தனியார் நிறுவனங்கள் மூலம் நேரடியாக தத்தெடுப்பது JJ Act பிரிவு 80 கீழ் தண்டனைக்குரிய குற்றமாகும்." else "Direct adoption without CARA portal registration is a punishable offense under Sec 80 of Juvenile Justice Act.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                     )
                 }
             }

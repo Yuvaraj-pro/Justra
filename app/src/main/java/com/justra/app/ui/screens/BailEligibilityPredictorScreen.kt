@@ -60,18 +60,19 @@ fun BailEligibilityPredictorScreen(
 
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SovereignNavy),
+                colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                border = BorderStroke(1.dp, CardBorderStroke),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (isTa) "⚖️ BNSS 2023 பிரிவு 479 சட்டப்பூர்வ ஜாமீன் உரிமை" else "⚖️ BNSS 2023 Sec 479 Statutory Bail Right",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Serif)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy, fontFamily = FontFamily.Serif)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (isTa) "முதல் முறை குற்றஞ்சாட்டப்பட்டவர் அதிகபட்ச தண்டனையில் 1/3 பங்கு காவலில் இருந்தால் கட்டாய பிணை உரிமை உண்டு." else "First-time undertrials having completed 1/3rd of max imprisonment are entitled to mandatory statutory bail.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Button(

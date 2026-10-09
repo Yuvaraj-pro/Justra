@@ -60,18 +60,19 @@ fun RERAHomebuyerDisputeScreen(
         ) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SovereignNavy),
+                colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                border = BorderStroke(1.dp, CardBorderStroke),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (isTa) "🏠 RERA பிரிவு 18: முழுப்பணம் திரும்பப் பெறுதல் அல்லது மாத வட்டி" else "🏠 RERA Sec 18 Statutory Interest & Refund Right",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Serif)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy, fontFamily = FontFamily.Serif)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (isTa) "ஒப்பந்தப்படி வீடு ஒப்படைக்கப்படாவிட்டால், செலுத்திய தொகையை வட்டியுடன் திரும்பப் பெறலாம் அல்லது தாமத காலத்திற்கு வட்டி பெறலாம்." else "Homebuyers can demand 100% refund with interest OR monthly interest compensation for every month of delay under Sec 18 RERA.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                     )
                 }
             }

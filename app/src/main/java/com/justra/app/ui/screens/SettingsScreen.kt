@@ -397,7 +397,7 @@ fun SettingsScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                text = "Justra AI v2.4.0 • Gemini 3.5 Flash Engine Active",
+                                text = "Justra AI v2.1.2 • Gemini 3.6 Flash Engine Active",
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     color = TextSecondaryDark,
                                     fontWeight = FontWeight.Medium

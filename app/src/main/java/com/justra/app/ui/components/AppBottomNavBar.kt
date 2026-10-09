@@ -1,6 +1,8 @@
 package com.justra.app.ui.components
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
@@ -17,10 +19,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.justra.app.domain.model.LanguagePreference
 import com.justra.app.ui.navigation.Screen
+import com.justra.app.ui.theme.SandstoneCard
+import com.justra.app.ui.theme.SoftNavyContainer
 import com.justra.app.ui.theme.SovereignNavy
-
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBars
+import com.justra.app.ui.theme.TextSecondaryDark
 
 @Composable
 fun AppBottomNavBar(
@@ -31,10 +33,18 @@ fun AppBottomNavBar(
 ) {
     val isTa = currentLanguage == LanguagePreference.TAMIL
 
+    val navBarItemColors = NavigationBarItemDefaults.colors(
+        selectedIconColor = SovereignNavy,
+        selectedTextColor = SovereignNavy,
+        indicatorColor = SoftNavyContainer,
+        unselectedIconColor = TextSecondaryDark,
+        unselectedTextColor = TextSecondaryDark
+    )
+
     NavigationBar(
         windowInsets = WindowInsets.navigationBars,
-        containerColor = SovereignNavy,
-        contentColor = Color.White,
+        containerColor = SandstoneCard,
+        contentColor = SovereignNavy,
         tonalElevation = 8.dp,
         modifier = modifier
     ) {
@@ -51,13 +61,7 @@ fun AppBottomNavBar(
                 )
             },
             alwaysShowLabel = true,
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = SovereignNavy,
-                selectedTextColor = Color.White,
-                indicatorColor = Color.White,
-                unselectedIconColor = Color.White.copy(alpha = 0.65f),
-                unselectedTextColor = Color.White.copy(alpha = 0.65f)
-            )
+            colors = navBarItemColors
         )
 
         // Hub 2: Voice & AI Assistant Intake
@@ -73,13 +77,7 @@ fun AppBottomNavBar(
                 )
             },
             alwaysShowLabel = true,
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = SovereignNavy,
-                selectedTextColor = Color.White,
-                indicatorColor = Color.White,
-                unselectedIconColor = Color.White.copy(alpha = 0.65f),
-                unselectedTextColor = Color.White.copy(alpha = 0.65f)
-            )
+            colors = navBarItemColors
         )
 
         // Hub 3: My Cases Hub
@@ -95,13 +93,7 @@ fun AppBottomNavBar(
                 )
             },
             alwaysShowLabel = true,
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = SovereignNavy,
-                selectedTextColor = Color.White,
-                indicatorColor = Color.White,
-                unselectedIconColor = Color.White.copy(alpha = 0.65f),
-                unselectedTextColor = Color.White.copy(alpha = 0.65f)
-            )
+            colors = navBarItemColors
         )
 
         // Hub 4: Statutory Tools & Knowledge Hub
@@ -117,13 +109,7 @@ fun AppBottomNavBar(
                 )
             },
             alwaysShowLabel = true,
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = SovereignNavy,
-                selectedTextColor = Color.White,
-                indicatorColor = Color.White,
-                unselectedIconColor = Color.White.copy(alpha = 0.65f),
-                unselectedTextColor = Color.White.copy(alpha = 0.65f)
-            )
+            colors = navBarItemColors
         )
 
         // Hub 5: Profile & Settings Hub
@@ -139,13 +125,8 @@ fun AppBottomNavBar(
                 )
             },
             alwaysShowLabel = true,
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = SovereignNavy,
-                selectedTextColor = Color.White,
-                indicatorColor = Color.White,
-                unselectedIconColor = Color.White.copy(alpha = 0.65f),
-                unselectedTextColor = Color.White.copy(alpha = 0.65f)
-            )
+            colors = navBarItemColors
         )
     }
 }
+

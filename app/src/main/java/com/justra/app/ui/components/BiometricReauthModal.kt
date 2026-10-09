@@ -132,7 +132,7 @@ fun BiometricReauthModal(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.78f))
+                .background(DeepIndigoSlatePrimary.copy(alpha = 0.45f))
                 .padding(20.dp),
             contentAlignment = Alignment.Center
         ) {

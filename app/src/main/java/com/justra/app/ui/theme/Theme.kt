@@ -161,24 +161,16 @@ private val DarkNyayaColors = NyayaCustomColors(
 
 /**
  * Material 3 Theme for Justra application.
- * Default dynamicColor is false to guarantee the requested sovereign color palette.
+ * Enforces pure light theme design system across the entire application.
  */
 @Composable
 fun JustraTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = false,
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme: ColorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
-    val customColors = if (darkTheme) DarkNyayaColors else LightNyayaColors
+    val colorScheme: ColorScheme = LightColorScheme
+    val customColors = LightNyayaColors
 
     CompositionLocalProvider(LocalNyayaCustomColors provides customColors) {
         MaterialTheme(
@@ -191,20 +183,20 @@ fun JustraTheme(
 
 @Composable
 fun NyayaMateTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = false,
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    JustraTheme(darkTheme = darkTheme, dynamicColor = dynamicColor, content = content)
+    JustraTheme(darkTheme = false, dynamicColor = false, content = content)
 }
 
 @Composable
 fun MyApplicationTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = false,
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    JustraTheme(darkTheme = darkTheme, dynamicColor = dynamicColor, content = content)
+    JustraTheme(darkTheme = false, dynamicColor = false, content = content)
 }
 
 /**
@@ -217,20 +209,20 @@ fun justraOutlinedTextFieldColors(): androidx.compose.material3.TextFieldColors 
 
 @Composable
 fun nyayaOutlinedTextFieldColors(): androidx.compose.material3.TextFieldColors {
-    val isDark = isSystemInDarkTheme()
     return androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-        focusedTextColor = if (isDark) Color(0xFFFAF7F2) else Color(0xFF14181F),
-        unfocusedTextColor = if (isDark) Color(0xFFFAF7F2) else Color(0xFF14181F),
-        focusedContainerColor = if (isDark) Color(0xFF1C2B44) else Color(0xFFF3ECE1),
-        unfocusedContainerColor = if (isDark) Color(0xFF1C2B44) else Color(0xFFF3ECE1),
-        cursorColor = if (isDark) Color(0xFF8FAEE0) else Color(0xFF0F1E36),
-        focusedBorderColor = if (isDark) Color(0xFF8FAEE0) else Color(0xFF0F1E36),
-        unfocusedBorderColor = if (isDark) Color(0xFF6B2937) else Color(0xFFD4CAB8),
-        focusedPlaceholderColor = if (isDark) Color(0xFFA0AAB8) else Color(0xFF5A606A),
-        unfocusedPlaceholderColor = if (isDark) Color(0xFFA0AAB8) else Color(0xFF5A606A),
-        focusedSupportingTextColor = if (isDark) Color(0xFFD0D7E2) else Color(0xFF4A4E57),
-        unfocusedSupportingTextColor = if (isDark) Color(0xFFD0D7E2) else Color(0xFF4A4E57)
+        focusedTextColor = Color(0xFF14181F),
+        unfocusedTextColor = Color(0xFF14181F),
+        focusedContainerColor = Color(0xFFF3ECE1),
+        unfocusedContainerColor = Color(0xFFF3ECE1),
+        cursorColor = Color(0xFF0F1E36),
+        focusedBorderColor = Color(0xFF0F1E36),
+        unfocusedBorderColor = Color(0xFFD4CAB8),
+        focusedPlaceholderColor = Color(0xFF5A606A),
+        unfocusedPlaceholderColor = Color(0xFF5A606A),
+        focusedSupportingTextColor = Color(0xFF4A4E57),
+        unfocusedSupportingTextColor = Color(0xFF4A4E57)
     )
 }
+
 
 

@@ -51,18 +51,19 @@ fun PassportImpoundmentAppealScreen(
         ) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SovereignNavy),
+                colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                border = BorderStroke(1.dp, CardBorderStroke),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (isTa) "✈️ பாஸ்போர்ட் அதிகாரி மட்டுமே முடக்க அதிகாரம் கொண்டவர்" else "✈️ Police Cannot Impound Passport Under Sec 102",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Serif)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy, fontFamily = FontFamily.Serif)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (isTa) "காவல்துறை பாஸ்போர்ட்டை பறிமுதல் செய்ய முடியாது; பாஸ்போர்ட் அதிகாரி மட்டுமே பிரிவு 10(3) கீழ் நடவடிக்கை எடுக்க முடியும்." else "Supreme Court mandates police cannot impound passports. Only Regional Passport Officer (RPO) holds authority under Sec 10(3).",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                     )
                 }
             }

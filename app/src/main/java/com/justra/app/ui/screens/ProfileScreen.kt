@@ -108,8 +108,9 @@ fun ProfileScreen(
             item {
                 Card(
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = SovereignNavy),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                    border = BorderStroke(1.dp, CardBorderStroke),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
@@ -139,7 +140,7 @@ fun ProfileScreen(
                             text = userDisplayName.ifBlank { if (isTa) "நீதி பயனர்" else "Justice Citizen" },
                             style = MaterialTheme.typography.headlineSmall.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White,
+                                color = SovereignNavy,
                                 fontFamily = FontFamily.Serif
                             )
                         )
@@ -149,7 +150,7 @@ fun ProfileScreen(
                         Text(
                             text = userPhone.ifBlank { if (isTa) "+91 நொய்யா பாதுகாப்பு எண்கள்" else "+91 Protected Number" },
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                color = Color.White.copy(alpha = 0.8f)
+                                color = TextSecondaryDark
                             )
                         )
 

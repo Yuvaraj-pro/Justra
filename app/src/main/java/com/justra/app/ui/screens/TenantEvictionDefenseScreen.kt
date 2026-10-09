@@ -51,18 +51,19 @@ fun TenantEvictionDefenseScreen(
         ) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SovereignNavy),
+                colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                border = BorderStroke(1.dp, CardBorderStroke),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (isTa) "🏠 மின்சாரம்/நீர் இணைப்பை துண்டிப்பது சட்டவிரோதம்" else "🏠 Landlord Cannot Sever Essential Services",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Serif)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy, fontFamily = FontFamily.Serif)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (isTa) "வாடகை நீதிமன்ற உத்தரவு இல்லாமல் வீட்டை காலி செய்ய வற்புறுத்துவது அல்லது மின்சாரத்தை துண்டிப்பது குற்றமாகும்." else "Under Sec 20 Model Tenancy Act, Landlord cannot cut electricity/water supply or lock premises without Rent Court Order.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                     )
                 }
             }
