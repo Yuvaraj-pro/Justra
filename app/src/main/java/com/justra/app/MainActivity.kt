@@ -5,7 +5,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
@@ -38,10 +41,18 @@ class MainActivity : FragmentActivity() {
         })
 
         setContent {
-            JustraTheme {
+            val themeMode by viewModel.themeMode.collectAsState()
+            val systemInDark = androidx.compose.foundation.isSystemInDarkTheme()
+            val isDarkTheme = when (themeMode) {
+                2 -> true
+                0 -> systemInDark
+                else -> false
+            }
+
+            JustraTheme(darkTheme = isDarkTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = WarmIvorySurface
+                    color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
 

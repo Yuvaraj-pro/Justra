@@ -61,7 +61,7 @@ val MaterialTheme.nyayaColors: NyayaCustomColors
 
 private val LightColorScheme = lightColorScheme(
     primary = SoftNavyContainer,
-    onPrimary = SovereignNavy,
+    onPrimary = Color.White,
     primaryContainer = SoftNavyContainer,
     onPrimaryContainer = OnNavyContainer,
     secondary = TerracottaBadgeContainer,
@@ -161,16 +161,16 @@ private val DarkNyayaColors = NyayaCustomColors(
 
 /**
  * Material 3 Theme for Justra application.
- * Enforces pure light theme design system across the entire application.
+ * Supports light, dark, and system themes.
  */
 @Composable
 fun JustraTheme(
-    darkTheme: Boolean = false,
+    darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme: ColorScheme = LightColorScheme
-    val customColors = LightNyayaColors
+    val colorScheme: ColorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val customColors = if (darkTheme) DarkNyayaColors else LightNyayaColors
 
     CompositionLocalProvider(LocalNyayaCustomColors provides customColors) {
         MaterialTheme(

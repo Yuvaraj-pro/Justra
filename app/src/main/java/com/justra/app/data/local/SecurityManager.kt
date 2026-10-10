@@ -37,6 +37,15 @@ class SecurityManager(context: Context) {
         private const val KEY_LAST_BACKGROUND_TIMESTAMP = "pref_last_background_timestamp"
         private const val KEY_LAST_ACTIVE_TIMESTAMP = "pref_last_active_timestamp"
         private const val KEY_LEGAL_DISCLAIMER_ACCEPTED = "pref_legal_disclaimer_accepted"
+        private const val KEY_THEME_MODE = "pref_theme_mode"
+    }
+
+    fun getThemeMode(): Int {
+        return prefs.getInt(KEY_THEME_MODE, 1)
+    }
+
+    fun setThemeMode(mode: Int) {
+        prefs.edit().putInt(KEY_THEME_MODE, mode).apply()
     }
 
     fun recordAppBackgrounded(timestamp: Long = System.currentTimeMillis()) {

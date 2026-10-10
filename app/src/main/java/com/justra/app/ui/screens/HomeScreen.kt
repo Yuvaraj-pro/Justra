@@ -179,14 +179,18 @@ fun HomeScreen(
                             OutlinedButton(
                                 onClick = { onNavigateToRoute?.invoke("my_cases_hub") },
                                 shape = RoundedCornerShape(10.dp),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)),
+                                border = BorderStroke(1.5.dp, SovereignNavy),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    containerColor = Color.Transparent,
+                                    contentColor = SovereignNavy
+                                ),
                                 modifier = Modifier.weight(1f)
                             ) {
-                                Icon(Icons.Default.Folder, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Default.Folder, contentDescription = null, tint = SovereignNavy, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = if (isTa) "எனது வழக்குகள்" else "My Cases",
-                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = Color.White)
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy)
                                 )
                             }
                         }

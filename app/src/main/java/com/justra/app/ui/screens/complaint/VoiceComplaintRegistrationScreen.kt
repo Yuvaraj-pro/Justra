@@ -344,12 +344,14 @@ fun VoiceComplaintRegistrationScreen(
                                 },
                                 style = MaterialTheme.typography.titleSmall.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = DeepImperialNavy
+                                    color = DeepImperialNavy,
+                                    lineHeight = 20.sp
                                 ),
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 8.dp)
                             )
 
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
 
                             // Responsive Mic Trigger Button with Pulsing Scale Animation
                             Box(
@@ -392,7 +394,7 @@ fun VoiceComplaintRegistrationScreen(
                         border = androidx.compose.foundation.BorderStroke(1.dp, ParchmentOutline),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Column(modifier = Modifier.padding(14.dp)) {
+                        Column(modifier = Modifier.padding(16.dp)) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,

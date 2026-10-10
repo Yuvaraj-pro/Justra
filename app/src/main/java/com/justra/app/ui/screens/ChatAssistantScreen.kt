@@ -418,10 +418,10 @@ private fun ChatBubble(
                     }
                 }
 
-                Text(
+                com.justra.app.ui.components.FormattedMarkdownText(
                     text = message.messageContent,
+                    textColor = textColor,
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = textColor,
                         lineHeight = 22.sp
                     )
                 )

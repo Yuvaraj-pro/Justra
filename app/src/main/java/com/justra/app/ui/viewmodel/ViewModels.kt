@@ -119,6 +119,15 @@ class JustraViewModel(application: Application) : AndroidViewModel(application) 
     private val _language = MutableStateFlow(securityManager.getLanguagePreference())
     val language: StateFlow<LanguagePreference> = _language.asStateFlow()
 
+    // Theme Mode State (0: System Default, 1: Light Mode, 2: Dark Mode)
+    private val _themeMode = MutableStateFlow(securityManager.getThemeMode())
+    val themeMode: StateFlow<Int> = _themeMode.asStateFlow()
+
+    fun setThemeMode(mode: Int) {
+        _themeMode.value = mode
+        securityManager.setThemeMode(mode)
+    }
+
     // Global Legal Jurisdiction State
     private val _activeJurisdiction = MutableStateFlow(
         GlobalJurisdictionRepository.getNationByCode(securityManager.getSelectedJurisdictionCode())
@@ -459,11 +468,14 @@ class JustraViewModel(application: Application) : AndroidViewModel(application) 
         _recordingState.value = AudioRecordingState.RECORDING
         val localeCode = if (_language.value == LanguagePreference.TAMIL) "ta-IN" else "en-IN"
         voiceInputManager.startListening(localeCode)
-        audioRecorderHelper.startRecording()
         recordingJob?.cancel()
         recordingJob = viewModelScope.launch {
-            audioRecorderHelper.amplitudeFlow.collect { amps ->
-                _audioWaveforms.value = amps
+            voiceInputManager.liveRmsDb.collect { rms ->
+                val normalized = ((rms.coerceAtLeast(0f) / 10f) * 0.9f + 0.08f).coerceIn(0.08f, 1.0f)
+                val current = _audioWaveforms.value.toMutableList()
+                if (current.size >= 35) current.removeAt(0)
+                current.add(normalized)
+                _audioWaveforms.value = current
             }
         }
     }

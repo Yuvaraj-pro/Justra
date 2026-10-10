@@ -353,7 +353,7 @@ fun WorldWideLawScreen(
             }
 
             // Search and Filters Bar
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 8.dp)) {
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
@@ -986,14 +986,18 @@ fun WorldWideLawSourceCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = { isExpanded = !isExpanded }) {
+                TextButton(
+                    onClick = { isExpanded = !isExpanded },
+                    colors = ButtonDefaults.textButtonColors(contentColor = DeepIndigoSlatePrimary)
+                ) {
                     Text(
                         text = if (isExpanded) (if (isTa) "குறைவாக" else "Less") else (if (isTa) "தொழில்நுட்ப விவரம்" else "Script Details"),
-                        style = MaterialTheme.typography.labelSmall
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = DeepIndigoSlatePrimary)
                     )
                     Icon(
                         imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                         contentDescription = null,
+                        tint = DeepIndigoSlatePrimary,
                         modifier = Modifier.size(16.dp)
                     )
                 }
@@ -1002,22 +1006,33 @@ fun WorldWideLawSourceCard(
                     OutlinedButton(
                         onClick = onViewSampleDocs,
                         shape = RoundedCornerShape(8.dp),
+                        border = BorderStroke(1.dp, DeepIndigoSlatePrimary),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = DeepIndigoSlatePrimary),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
                     ) {
-                        Icon(imageVector = Icons.Default.Description, contentDescription = null, modifier = Modifier.size(14.dp))
+                        Icon(imageVector = Icons.Default.Description, contentDescription = null, tint = DeepIndigoSlatePrimary, modifier = Modifier.size(14.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = if (isTa) "மாதிரி ஆவணம்" else "Sample Doc", style = MaterialTheme.typography.labelSmall)
+                        Text(
+                            text = if (isTa) "மாதிரி ஆவணம்" else "Sample Doc",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = DeepIndigoSlatePrimary)
+                        )
                     }
 
                     Button(
                         onClick = onOpenUrl,
                         shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = DeepIndigoSlatePrimary),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = DeepIndigoSlatePrimary,
+                            contentColor = Color.White
+                        ),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
                     ) {
-                        Icon(imageVector = Icons.Default.OpenInBrowser, contentDescription = null, modifier = Modifier.size(14.dp))
+                        Icon(imageVector = Icons.Default.OpenInBrowser, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = if (isTa) "போர்டல்" else "Portal", style = MaterialTheme.typography.labelSmall)
+                        Text(
+                            text = if (isTa) "போர்டல்" else "Portal",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = Color.White)
+                        )
                     }
                 }
             }

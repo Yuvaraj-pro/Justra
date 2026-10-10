@@ -47,7 +47,7 @@ fun SettingsScreen(
     var legalRemindersEnabled by remember { mutableStateOf(true) }
 
     // Theme state (0: System Default, 1: Light Mode, 2: Dark Mode)
-    var selectedThemeMode by remember { mutableStateOf(1) } // Default to Light Mode as per design
+    val selectedThemeMode by viewModel.themeMode.collectAsState()
 
     // Dialog States
     var showTermsDialog by remember { mutableStateOf(false) }
@@ -229,7 +229,7 @@ fun SettingsScreen(
                                 ) {
                                     RadioButton(
                                         selected = selectedThemeMode == mode,
-                                        onClick = { selectedThemeMode = mode },
+                                        onClick = { viewModel.setThemeMode(mode) },
                                         colors = RadioButtonDefaults.colors(selectedColor = SovereignNavy)
                                     )
                                     Text(
@@ -358,7 +358,7 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = "Justra v1.0.0",
+                                text = "Justra v2.1.3",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
                                     color = SovereignNavy
