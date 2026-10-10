@@ -100,6 +100,7 @@ import com.justra.app.ui.theme.SageGreenSuccessContainer
 import com.justra.app.ui.theme.SageGreenSuccessText
 import com.justra.app.ui.theme.nyayaOutlinedTextFieldColors
 import com.justra.app.ui.viewmodel.NyayaMateViewModel
+import com.justra.app.utils.ActionUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -185,7 +186,7 @@ fun WorldWideLawScreen(
                             }
                         }
                         Text(
-                            text = if (isTa) "960+ சேகரிப்பு ஸ்கிரிப்ட்கள் • 1.6 கோடி திறந்தநிலை ஆவணங்கள்" else "960+ Collection Scripts • 16M+ Open Legal Records",
+                            text = if (isTa) "110+ நாடுகள் • 1.6 கோடி திறந்தநிலை ஆவணங்கள்" else "110+ Jurisdictions • 16M+ Open Legal Records",
                             style = MaterialTheme.typography.labelSmall.copy(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -204,13 +205,12 @@ fun WorldWideLawScreen(
                 actions = {
                     IconButton(
                         onClick = {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://legaldatahunter.com"))
-                            context.startActivity(intent)
+                            ActionUtils.openWebUrl(context, "https://www.indiacode.nic.in")
                         }
                     ) {
                         Icon(
                             imageVector = Icons.Default.Public,
-                            contentDescription = "Live Dashboard",
+                            contentDescription = "Official Statutory Portal",
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -251,7 +251,7 @@ fun WorldWideLawScreen(
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(
-                                text = if (isTa) "திறந்தநிலை சட்ட உள்கட்டமைப்பு" else "Open Legal Infrastructure",
+                                text = if (isTa) "திறந்தநிலை சட்ட உள்கட்டமைப்பு" else "Global Open Legal Repository",
                                 style = MaterialTheme.typography.labelMedium.copy(
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
@@ -260,14 +260,13 @@ fun WorldWideLawScreen(
                         }
 
                         Text(
-                            text = "legaldatahunter.com",
+                            text = "indiacode.nic.in",
                             style = MaterialTheme.typography.labelSmall.copy(
                                 color = MaterialTheme.colorScheme.secondary,
                                 fontWeight = FontWeight.Bold
                             ),
                             modifier = Modifier.clickable {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://legaldatahunter.com"))
-                                context.startActivity(intent)
+                                ActionUtils.openWebUrl(context, "https://www.indiacode.nic.in")
                             }
                         )
                     }
@@ -278,19 +277,18 @@ fun WorldWideLawScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        MetricItem(value = "110+", label = if (isTa) "நாடுகள்" else "Countries")
-                        MetricItem(value = "960+", label = if (isTa) "ஸ்கிரிப்ட்கள்" else "Scripts")
-                        MetricItem(value = "3,413", label = if (isTa) "ஆதாரங்கள்" else "Endpoints")
-                        MetricItem(value = "16M+", label = if (isTa) "ஆவணங்கள்" else "Indexed Docs")
+                        MetricItem(value = "110+", label = if (isTa) "நாடுகள்" else "Jurisdictions")
+                        MetricItem(value = "5", label = if (isTa) "பிராந்தியங்கள்" else "Global Regions")
+                        MetricItem(value = "16M+", label = if (isTa) "ஆவணங்கள்" else "Indexed Records")
                     }
 
                     Spacer(modifier = Modifier.height(6.dp))
 
                     Text(
                         text = if (isTa)
-                            "அரசு போர்ட்டல்கள், உச்ச நீதிமன்றங்கள் மற்றும் ஒழுங்குமுறை அமைப்புகளிலிருந்து சட்டங்களை தரநிலைப்படுத்தி ஆஃப்லைனில் வழங்குகிறது."
+                            "அரசு போர்ட்டல்கள், உச்ச நீதிமன்றங்கள் மற்றும் ஒழுங்குமுறை அமைப்புகளிலிருந்து அதிகாரப்பூர்வ சட்டங்கள்."
                         else
-                            "Standardized open legal data normalized from official government gazettes, supreme courts, and regulatory enforcement authorities.",
+                            "Standardized open legal data curated directly from official government gazettes, supreme courts, and statutory portals.",
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 11.sp
@@ -793,6 +791,7 @@ fun WorldWideLawSourceCard(
     onViewSampleDocs: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     var isExpanded by remember { mutableStateOf(false) }
 
     Card(
@@ -949,99 +948,48 @@ fun WorldWideLawSourceCard(
                 text = source.notes,
                 style = MaterialTheme.typography.bodySmall.copy(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
-                ),
-                maxLines = if (isExpanded) 10 else 2,
-                overflow = TextOverflow.Ellipsis
+                )
             )
 
-            // Expanded metadata section
-            AnimatedVisibility(
-                visible = isExpanded,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 10.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
-                        .padding(10.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Icon(imageVector = Icons.Default.Code, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
-                        Text(
-                            text = "Collection Script: ${source.collectionScriptPath}",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontFamily = FontFamily.Monospace,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Standard Normalization Output:\n• _id, _source, _type, title, text, date, url\n• Auth: ${source.auth} • Commercial: ${if (source.commercialUse) "Allowed" else "Non-commercial"}",
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            fontSize = 10.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontFamily = FontFamily.Monospace
-                        )
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Action row
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(
-                    onClick = { isExpanded = !isExpanded },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary)
-                ) {
-                    Text(
-                        text = if (isExpanded) (if (isTa) "குறைவாக" else "Less") else (if (isTa) "தொழில்நுட்ப விவரம்" else "Script Details"),
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                    )
-                    Icon(
-                        imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(
                         onClick = onViewSampleDocs,
                         shape = RoundedCornerShape(8.dp),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                     ) {
                         Icon(imageVector = Icons.Default.Description, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = if (isTa) "மாதிரி ஆவணம்" else "Sample Doc",
+                            text = if (isTa) "மாதிரி ஆவணம்" else "Sample Document",
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                         )
                     }
 
                     Button(
-                        onClick = onOpenUrl,
+                        onClick = {
+                            ActionUtils.openWebUrl(context, source.url)
+                        },
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary
                         ),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                     ) {
                         Icon(imageVector = Icons.Default.OpenInBrowser, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(14.dp))
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = if (isTa) "போர்டல்" else "Portal",
+                            text = if (isTa) "அதிகாரப்பூர்வ போர்டல்" else "Official Portal",
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                         )
                     }

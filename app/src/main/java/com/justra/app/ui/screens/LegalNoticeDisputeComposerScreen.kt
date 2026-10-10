@@ -71,6 +71,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import com.justra.app.data.local.CaseEntity
 import com.justra.app.domain.model.LanguagePreference
+import com.justra.app.ui.components.NonGovernmentDisclaimerCard
 import com.justra.app.ui.theme.DeepIndigoSlatePrimary
 import com.justra.app.ui.theme.PaleSandstoneVariant
 import com.justra.app.ui.theme.PrimaryContainerSlate
@@ -456,6 +457,8 @@ fun LegalNoticeDisputeComposerScreen(
                             }
                         }
                     }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    NonGovernmentDisclaimerCard(modifier = Modifier.padding(bottom = 16.dp))
                 }
             }
         }

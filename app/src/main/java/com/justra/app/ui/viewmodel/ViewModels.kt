@@ -119,14 +119,26 @@ class JustraViewModel(application: Application) : AndroidViewModel(application) 
     private val _language = MutableStateFlow(securityManager.getLanguagePreference())
     val language: StateFlow<LanguagePreference> = _language.asStateFlow()
 
-    // Theme Mode State (0: System Default, 1: Light Mode, 2: Dark Mode)
-    private val _themeMode = MutableStateFlow(securityManager.getThemeMode())
-    val themeMode: StateFlow<Int> = _themeMode.asStateFlow()
+    // Theme Mode State (SYSTEM, LIGHT, DARK)
+    private val _themeMode = MutableStateFlow(com.justra.app.ui.theme.ThemeMode.fromInt(securityManager.getThemeMode()))
+    val themeMode: StateFlow<com.justra.app.ui.theme.ThemeMode> = _themeMode.asStateFlow()
 
     fun setThemeMode(mode: Int) {
-        _themeMode.value = mode
+        val theme = com.justra.app.ui.theme.ThemeMode.fromInt(mode)
+        _themeMode.value = theme
         securityManager.setThemeMode(mode)
     }
+
+    fun setThemeMode(mode: com.justra.app.ui.theme.ThemeMode) {
+        _themeMode.value = mode
+        securityManager.setThemeMode(mode.modeValue)
+    }
+
+    // Rate Limiting & Lockout Helpers
+    fun getFailedAttemptsCount(): Int = securityManager.getFailedAttemptsCount()
+    fun getRemainingLockoutSeconds(): Int = securityManager.getRemainingLockoutSeconds()
+    fun recordFailedAttempt(): Int = securityManager.recordFailedAttempt()
+    fun resetFailedAttempts() = securityManager.resetFailedAttempts()
 
     // Global Legal Jurisdiction State
     private val _activeJurisdiction = MutableStateFlow(

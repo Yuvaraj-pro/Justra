@@ -159,13 +159,30 @@ private val DarkNyayaColors = NyayaCustomColors(
     gradientBottomRight = PaletteGradientBottomRight
 )
 
+enum class ThemeMode(val modeValue: Int) {
+    SYSTEM(0),
+    LIGHT(1),
+    DARK(2);
+
+    companion object {
+        fun fromInt(value: Int): ThemeMode {
+            return values().firstOrNull { it.modeValue == value } ?: SYSTEM
+        }
+    }
+}
+
 /**
  * Material 3 Theme for Justra application.
  * Supports light, dark, and system themes.
  */
 @Composable
 fun JustraTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
+    darkTheme: Boolean = when (themeMode) {
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+    },
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
@@ -179,6 +196,19 @@ fun JustraTheme(
             content = content
         )
     }
+}
+
+@Composable
+fun JustraTheme(
+    darkTheme: Boolean,
+    dynamicColor: Boolean = false,
+    content: @Composable () -> Unit
+) {
+    JustraTheme(
+        themeMode = if (darkTheme) ThemeMode.DARK else ThemeMode.LIGHT,
+        dynamicColor = dynamicColor,
+        content = content
+    )
 }
 
 @Composable

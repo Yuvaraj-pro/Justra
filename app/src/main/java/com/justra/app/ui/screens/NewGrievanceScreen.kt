@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.justra.app.domain.model.DisputeCategory
 import com.justra.app.domain.model.LanguagePreference
+import com.justra.app.ui.components.NonGovernmentDisclaimerCard
 import com.justra.app.ui.theme.SovereignNavy
 import com.justra.app.ui.theme.WarmIvorySurface
 import com.justra.app.ui.viewmodel.NyayaMateViewModel
@@ -198,6 +199,8 @@ fun NewGrievanceScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(if (isTa) "?????? ????? ????? & ????? ????? ?????" else "Submit & Proceed to Smart Complaint")
                     }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    NonGovernmentDisclaimerCard(modifier = Modifier.padding(bottom = 12.dp))
                 }
             }
         }

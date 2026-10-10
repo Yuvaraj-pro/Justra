@@ -87,6 +87,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.justra.app.domain.model.LanguagePreference
 import com.justra.app.domain.model.UserRole
+import com.justra.app.ui.components.NonGovernmentDisclaimerCard
 import com.justra.app.ui.theme.DeepHennaAlertContainer
 import com.justra.app.ui.theme.CardBorderStroke
 import com.justra.app.ui.theme.DeepImperialNavy
@@ -888,6 +889,9 @@ fun VoiceComplaintRegistrationScreen(
                 }
             }
 
+            item {
+                NonGovernmentDisclaimerCard(modifier = Modifier.padding(vertical = 12.dp))
+            }
             item {
                 Spacer(modifier = Modifier.height(20.dp))
             }

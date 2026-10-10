@@ -19,8 +19,8 @@ android {
     applicationId = "com.justra.app"
     minSdk = 26
     targetSdk = 35
-    versionCode = 213
-    versionName = "2.1.3"
+    versionCode = 214
+    versionName = "2.1.4"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -130,6 +130,7 @@ dependencies {
   implementation(libs.androidx.lifecycle.viewmodel.compose)
   implementation(libs.androidx.navigation.compose)
   implementation(libs.androidx.biometric)
+  implementation("androidx.browser:browser:1.8.0")
   implementation("androidx.security:security-crypto:1.1.0-alpha06")
   implementation(libs.androidx.room.ktx)
   implementation(libs.androidx.room.runtime)

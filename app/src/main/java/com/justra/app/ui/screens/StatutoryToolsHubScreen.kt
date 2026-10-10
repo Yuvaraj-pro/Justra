@@ -27,6 +27,9 @@ import androidx.compose.ui.unit.sp
 import com.justra.app.domain.model.DisputeCategory
 import com.justra.app.domain.model.LanguagePreference
 import com.justra.app.ui.components.AppBottomNavBar
+import com.justra.app.ui.components.GovernmentSource
+import com.justra.app.ui.components.GovernmentSourceBadge
+import com.justra.app.ui.components.NonGovernmentDisclaimerCard
 import com.justra.app.ui.components.NyayaTopBar
 import com.justra.app.ui.theme.*
 import android.content.Intent
@@ -119,6 +122,13 @@ fun StatutoryToolsHubScreen(
                         contentPadding = PaddingValues(bottom = 80.dp)
                     ) {
                         items(categories, key = { it.name }) { category ->
+                            val govSource = when (category) {
+                                DisputeCategory.CONSUMER_GRIEVANCE -> GovernmentSource.CONSUMER_PROTECTION
+                                DisputeCategory.CYBER_FINANCIAL_FRAUD -> GovernmentSource.CYBER_FRAUD
+                                DisputeCategory.EMPLOYMENT_SALARY -> GovernmentSource.LABOUR_EMPLOYMENT
+                                DisputeCategory.LAND_PROPERTY -> GovernmentSource.COURT_PROCESSES
+                                else -> GovernmentSource.CENTRAL_ACTS
+                            }
                             Card(
                                 shape = RoundedCornerShape(12.dp),
                                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -128,27 +138,33 @@ fun StatutoryToolsHubScreen(
                                     .clip(RoundedCornerShape(12.dp))
                                     .clickable { onSelectTopic(category.name) }
                             ) {
-                                Row(
-                                    modifier = Modifier.padding(14.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(Icons.Default.Gavel, contentDescription = null, tint = SovereignNavy, modifier = Modifier.size(24.dp))
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = if (isTa) category.titleTa else category.titleEn,
-                                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy)
-                                        )
-                                        Text(
-                                            text = if (isTa) category.descriptionTa else category.descriptionEn,
-                                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
+                                Column(modifier = Modifier.padding(14.dp)) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(Icons.Default.Gavel, contentDescription = null, tint = SovereignNavy, modifier = Modifier.size(24.dp))
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = if (isTa) category.titleTa else category.titleEn,
+                                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy)
+                                            )
+                                            Text(
+                                                text = if (isTa) category.descriptionTa else category.descriptionEn,
+                                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
+                                        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
                                     }
-                                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
-}
-}
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    GovernmentSourceBadge(source = govSource)
+                                }
+                            }
+                        }
+                        item {
+                            NonGovernmentDisclaimerCard(modifier = Modifier.padding(top = 8.dp, bottom = 16.dp))
                         }
                     }
                 }
@@ -384,16 +400,27 @@ item {
                                 onClick = { onNavigateToRoute("litigation_costs_estimator") }
                             )
                         }
+                        item {
+                            NonGovernmentDisclaimerCard(modifier = Modifier.padding(top = 8.dp, bottom = 16.dp))
+                        }
                     }
                 }
                 2 -> {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        UtilityToolCard(
-                            title = if (isTa) "உலகளாவிய சட்ட தரவுத்தளம்" else "Global & Comparative Law Hub",
-                            subtitle = if (isTa) "சர்வதேச சட்டங்கள் மற்றும் உரிமைகள் ஒப்பீடு" else "Compare Indian legal provisions with international human rights benchmarks",
-                            icon = Icons.Default.Public,
-                            onClick = { onNavigateToRoute("world_wide_law") }
-                        )
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(bottom = 80.dp)
+                    ) {
+                        item {
+                            UtilityToolCard(
+                                title = if (isTa) "உலகளாவிய சட்ட தரவுத்தளம்" else "Global & Comparative Law Hub",
+                                subtitle = if (isTa) "சர்வதேச சட்டங்கள் மற்றும் உரிமைகள் ஒப்பீடு" else "Compare Indian legal provisions with international human rights benchmarks",
+                                icon = Icons.Default.Public,
+                                onClick = { onNavigateToRoute("world_wide_law") }
+                            )
+                        }
+                        item {
+                            NonGovernmentDisclaimerCard(modifier = Modifier.padding(top = 8.dp, bottom = 16.dp))
+                        }
                     }
                 }
             }

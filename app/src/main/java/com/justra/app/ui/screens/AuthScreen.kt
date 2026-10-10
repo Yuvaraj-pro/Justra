@@ -48,6 +48,8 @@ fun AuthScreen(
     val context = LocalContext.current
     val isTa = currentLanguage == LanguagePreference.TAMIL
 
+    val securityManager = remember(context) { com.justra.app.data.local.SecurityManager(context) }
+
     var showPinDialog by remember { mutableStateOf(false) }
     var isCreatePinMode by remember { mutableStateOf(!hasVaultPin) }
 
@@ -55,7 +57,29 @@ fun AuthScreen(
     var pinConfirmInput by remember { mutableStateOf("") }
     var pinError by remember { mutableStateOf<String?>(null) }
 
+    var remainingLockoutSeconds by remember { mutableIntStateOf(securityManager.getRemainingLockoutSeconds()) }
+    var failedAttempts by remember { mutableIntStateOf(securityManager.getFailedAttemptsCount()) }
+
+    LaunchedEffect(remainingLockoutSeconds) {
+        if (remainingLockoutSeconds > 0) {
+            while (remainingLockoutSeconds > 0) {
+                kotlinx.coroutines.delay(1000L)
+                remainingLockoutSeconds = securityManager.getRemainingLockoutSeconds()
+            }
+            securityManager.resetFailedAttempts()
+            failedAttempts = 0
+            pinError = null
+        }
+    }
+
     fun launchBiometricOrPin() {
+        val currentLockout = securityManager.getRemainingLockoutSeconds()
+        if (currentLockout > 0) {
+            remainingLockoutSeconds = currentLockout
+            showPinDialog = true
+            return
+        }
+
         val activity = context as? FragmentActivity
         val biometricsAvailable = BiometricAuthHelper.isDeviceBiometricOrLockAvailable(context)
 
@@ -65,9 +89,14 @@ fun AuthScreen(
                 title = if (isTa) "ஜஸ்ட்ரா சட்ட பெட்டக அங்கீகாரம்" else "Justra Legal Vault Authentication",
                 subtitle = if (isTa) "கைரேகை அல்லது சாதன பூட்டு மூலம் உள்ளே நுழையவும்" else "Verify identity using Biometrics or Device Screen Lock",
                 onSuccess = {
+                    securityManager.resetFailedAttempts()
+                    failedAttempts = 0
                     onAuthenticated()
                 },
                 onError = { err ->
+                    val newCount = securityManager.recordFailedAttempt()
+                    failedAttempts = newCount
+                    remainingLockoutSeconds = securityManager.getRemainingLockoutSeconds()
                     showPinDialog = true
                 },
                 onFallbackToPin = {
@@ -141,31 +170,62 @@ fun AuthScreen(
                     .padding(bottom = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Button(
-                    onClick = { launchBiometricOrPin() },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = AccentTerracotta,
-                        contentColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(54.dp)
-                        .testTag("auth_continue_button")
-                ) {
-                    Text(
-                        text = if (isTa) "முகப்பிற்கு செல்லவும்" else "Continue to Justra",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
+                if (remainingLockoutSeconds > 0) {
+                    Card(
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                        modifier = Modifier.fillMaxWidth().testTag("lockout_timer_banner")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Lock,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                            Text(
+                                text = if (isTa)
+                                    "பாதுகாப்பு பூட்டு: பல தவறான முயற்சிகள். $remainingLockoutSeconds வினாடிகளுக்குப் பிறகு மீண்டும் முயற்சிக்கவும்."
+                                else
+                                    String.format("Security Lockout: Too many failed attempts. Please try again in %d seconds.", remainingLockoutSeconds),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                            )
+                        }
+                    }
+                } else {
+                    Button(
+                        onClick = { launchBiometricOrPin() },
+                        enabled = remainingLockoutSeconds <= 0,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AccentTerracotta,
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(54.dp)
+                            .testTag("auth_continue_button")
+                    ) {
+                        Text(
+                            text = if (isTa) "முகப்பிற்கு செல்லவும்" else "Continue to Justra",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
                         )
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
-                        tint = Color.White
-                    )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+                    }
                 }
 
                 OutlinedButton(
@@ -213,14 +273,34 @@ fun AuthScreen(
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        text = if (isCreatePinMode) {
-                            if (isTa) "கைரேகை கிடைக்காதபோது செயலியை திறக்க 4-இலக்க PIN தேவை" else "Set up a 4-digit in-app security PIN as a fallback for app lock."
-                        } else {
-                            if (isTa) "தொடர உங்கள் 4-இலக்க PIN ஐ உள்ளிடவும்" else "Enter your 4-digit security PIN to unlock the Justra Legal Vault."
-                        },
-                        style = MaterialTheme.typography.bodySmall
-                    )
+                    if (remainingLockoutSeconds > 0) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp)
+                        ) {
+                            Text(
+                                text = if (isTa)
+                                    "பாதுகாப்பு பூட்டு: பல தவறான முயற்சிகள். $remainingLockoutSeconds வினாடிகளுக்குப் பிறகு மீண்டும் முயற்சிக்கவும்."
+                                else
+                                    String.format("Security Lockout: Too many failed attempts. Please try again in %d seconds.", remainingLockoutSeconds),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onErrorContainer
+                                ),
+                                modifier = Modifier.padding(10.dp)
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = if (isCreatePinMode) {
+                                if (isTa) "கைரேகை கிடைக்காதபோது செயலியை திறக்க 4-இலக்க PIN தேவை" else "Set up a 4-digit in-app security PIN as a fallback for app lock."
+                            } else {
+                                if (isTa) "தொடர உங்கள் 4-இலக்க PIN ஐ உள்ளிடவும்" else "Enter your 4-digit security PIN to unlock the Justra Legal Vault."
+                            },
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
 
                     OutlinedTextField(
                         value = pinInput,
@@ -230,6 +310,7 @@ fun AuthScreen(
                                 pinError = null
                             }
                         },
+                        enabled = remainingLockoutSeconds <= 0,
                         label = { Text(if (isTa) "4-இலக்க PIN" else "4-Digit PIN") },
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
@@ -248,6 +329,7 @@ fun AuthScreen(
                                     pinError = null
                                 }
                             },
+                            enabled = remainingLockoutSeconds <= 0,
                             label = { Text(if (isTa) "PIN உறுதிப்படுத்தவும்" else "Confirm 4-Digit PIN") },
                             visualTransformation = PasswordVisualTransformation(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
@@ -258,7 +340,7 @@ fun AuthScreen(
                         )
                     }
 
-                    if (pinError != null) {
+                    if (pinError != null && remainingLockoutSeconds <= 0) {
                         Text(
                             text = pinError!!,
                             style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.error)
@@ -268,7 +350,9 @@ fun AuthScreen(
             },
             confirmButton = {
                 Button(
+                    enabled = remainingLockoutSeconds <= 0,
                     onClick = {
+                        if (remainingLockoutSeconds > 0) return@Button
                         if (isCreatePinMode) {
                             if (pinInput.length != 4) {
                                 pinError = if (isTa) "சரியாக 4 இலக்கங்களை உள்ளிடவும்" else "PIN must be exactly 4 digits"
@@ -276,6 +360,8 @@ fun AuthScreen(
                                 pinError = if (isTa) "PIN எண்கள் பொருந்தவில்லை" else "PINs do not match"
                             } else {
                                 onSetVaultPin(pinInput)
+                                securityManager.resetFailedAttempts()
+                                failedAttempts = 0
                                 showPinDialog = false
                                 onAuthenticated()
                             }
@@ -283,10 +369,21 @@ fun AuthScreen(
                             if (pinInput.length != 4) {
                                 pinError = if (isTa) "4 இலக்கங்களை உள்ளிடவும்" else "Enter 4 digits"
                             } else if (onVerifyPin(pinInput)) {
+                                securityManager.resetFailedAttempts()
+                                failedAttempts = 0
                                 showPinDialog = false
                                 onAuthenticated()
                             } else {
-                                pinError = if (isTa) "தவறான PIN. மீண்டும் முயற்சிக்கவும்." else "Incorrect PIN. Please try again."
+                                val newCount = securityManager.recordFailedAttempt()
+                                failedAttempts = newCount
+                                val lockoutSec = securityManager.getRemainingLockoutSeconds()
+                                remainingLockoutSeconds = lockoutSec
+                                if (lockoutSec <= 0) {
+                                    val remainingAttempts = (5 - newCount).coerceAtLeast(0)
+                                    pinError = if (isTa) "தவறான PIN. $remainingAttempts முயற்சிகள் மீதமுள்ளன." else "Incorrect PIN. $remainingAttempts attempts remaining."
+                                } else {
+                                    pinError = null
+                                }
                             }
                         }
                     },

@@ -41,10 +41,12 @@ import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderShared
 import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Shield
@@ -1184,4 +1186,120 @@ fun RoleSelectionCard(
         }
     }
 }
+
+enum class GovernmentSource(
+    val title: String,
+    val url: String
+) {
+    CENTRAL_ACTS(
+        title = "Source: Ministry of Law and Justice (indiacode.nic.in)",
+        url = "https://www.indiacode.nic.in"
+    ),
+    CONSUMER_PROTECTION(
+        title = "Source: Department of Consumer Affairs (consumerhelpline.gov.in)",
+        url = "https://consumerhelpline.gov.in"
+    ),
+    CYBER_FRAUD(
+        title = "Source: Indian Cyber Crime Coordination Centre (cybercrime.gov.in)",
+        url = "https://cybercrime.gov.in"
+    ),
+    COURT_PROCESSES(
+        title = "Source: eCourts Services, Supreme Court of India (ecourts.gov.in)",
+        url = "https://ecourts.gov.in"
+    ),
+    LABOUR_EMPLOYMENT(
+        title = "Source: Ministry of Labour and Employment (labour.gov.in)",
+        url = "https://labour.gov.in"
+    )
+}
+
+@Composable
+fun GovernmentSourceBadge(
+    source: GovernmentSource,
+    modifier: Modifier = Modifier,
+    onSnackbarMessage: ((String) -> Unit)? = null
+) {
+    val context = LocalContext.current
+    Surface(
+        shape = RoundedCornerShape(6.dp),
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+        modifier = modifier
+            .clip(RoundedCornerShape(6.dp))
+            .clickable {
+                com.justra.app.utils.ActionUtils.openWebUrl(context, source.url, onSnackbarMessage)
+            }
+            .testTag("gov_source_badge_${source.name.lowercase()}")
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.OpenInBrowser,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(12.dp)
+            )
+            Text(
+                text = source.title,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            )
+        }
+    }
+}
+
+@Composable
+fun NonGovernmentDisclaimerCard(
+    modifier: Modifier = Modifier
+) {
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag("non_government_disclaimer_card")
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(
+                    text = "Government Information & Non-Affiliation Disclaimer:",
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+            }
+            Text(
+                text = "Justra is an independent legal-technology application developed to assist citizens with statutory awareness and legal dispute preparation. Justra does not represent, endorse, or hold any official partnership with the Government of India or any state government entity. All statutory provisions, acts, and procedural references are derived directly from publicly available government databases (including indiacode.nic.in, consumerhelpline.gov.in, and cybercrime.gov.in).",
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontSize = 11.sp,
+                    lineHeight = 15.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            )
+        }
+    }
+}
+
 

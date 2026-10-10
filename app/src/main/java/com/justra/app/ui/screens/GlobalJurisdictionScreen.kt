@@ -293,7 +293,7 @@ fun GlobalJurisdictionScreen(
                                     )
                                     Surface(shape = RoundedCornerShape(4.dp), color = SageGreenSuccessContainer) {
                                         Text(
-                                            text = "960+ SCRIPTS",
+                                            text = "GLOBAL REPOSITORY",
                                             style = MaterialTheme.typography.labelSmall.copy(
                                                 color = SageGreenSuccessText,
                                                 fontSize = 9.sp,
@@ -304,7 +304,7 @@ fun GlobalJurisdictionScreen(
                                     }
                                 }
                                 Text(
-                                    text = if (isTa) "1.6 கோடி திறந்தநிலை ஆவணங்கள் & நேரடித் தேடல் (legaldatahunter.com)" else "16M+ open legal docs across 3,400+ endpoints (legaldatahunter.com)",
+                                    text = if (isTa) "1.6 கோடி திறந்தநிலை ஆவணங்கள் & சர்வதேச சட்டங்கள்" else "16M+ open legal docs across 110+ jurisdictions",
                                     style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 )
                             }

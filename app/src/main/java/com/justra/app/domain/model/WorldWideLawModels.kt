@@ -123,6 +123,6 @@ data class WorldWideLawStatistics(
     val totalCollectionScripts: Int = 960,
     val totalManifestEndpoints: Int = 3413,
     val indexedDocumentsCount: String = "16,000,000+",
-    val liveDashboardUrl: String = "https://legaldatahunter.com",
+    val liveDashboardUrl: String = "https://www.indiacode.nic.in",
     val githubRepoUrl: String = "https://github.com/worldwidelaw/legal-sources"
 )

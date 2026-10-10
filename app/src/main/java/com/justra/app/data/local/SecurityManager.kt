@@ -49,6 +49,8 @@ class SecurityManager(context: Context) {
         private const val KEY_LAST_BACKGROUND_TIMESTAMP = "pref_last_background_timestamp"
         private const val KEY_LAST_ACTIVE_TIMESTAMP = "pref_last_active_timestamp"
         private const val KEY_LEGAL_DISCLAIMER_ACCEPTED = "pref_legal_disclaimer_accepted"
+        private const val KEY_FAILED_ATTEMPTS_COUNT = "pref_failed_attempts_count"
+        private const val KEY_LOCKOUT_START_TIME = "pref_lockout_start_time"
         private const val KEY_THEME_MODE = "pref_theme_mode"
     }
 
@@ -80,7 +82,7 @@ class SecurityManager(context: Context) {
         if (!isBiometricLockEnabled()) {
             return false
         }
-        val timeoutMs = getAutoLockTimeoutMinutes() * 60 * 1000L // 5 minutes = 300,000 ms
+        val timeoutMs = getAutoLockTimeoutMinutes() * 60 * 1000L
         val bgTime = getLastBackgroundTimestamp()
         if (bgTime > 0L && (currentTime - bgTime) >= timeoutMs) {
             return true
@@ -98,7 +100,6 @@ class SecurityManager(context: Context) {
             .putLong(KEY_LAST_ACTIVE_TIMESTAMP, System.currentTimeMillis())
             .apply()
     }
-
 
     fun getAutoLockTimeoutMinutes(): Int {
         return prefs.getInt(KEY_AUTO_LOCK_TIMEOUT, 5)
@@ -178,6 +179,46 @@ class SecurityManager(context: Context) {
         prefs.edit().putString(KEY_USER_ROLE, role.id).apply()
     }
 
+    fun getFailedAttemptsCount(): Int {
+        return prefs.getInt(KEY_FAILED_ATTEMPTS_COUNT, 0)
+    }
+
+    fun getLockoutStartTime(): Long {
+        return prefs.getLong(KEY_LOCKOUT_START_TIME, 0L)
+    }
+
+    fun getRemainingLockoutSeconds(): Int {
+        val attempts = getFailedAttemptsCount()
+        if (attempts < 5) return 0
+        val startTime = getLockoutStartTime()
+        if (startTime == 0L) return 0
+        val elapsed = (System.currentTimeMillis() - startTime) / 1000L
+        val remaining = 60L - elapsed
+        if (remaining <= 0) {
+            resetFailedAttempts()
+            return 0
+        }
+        return remaining.toInt()
+    }
+
+    fun recordFailedAttempt(): Int {
+        val currentAttempts = getFailedAttemptsCount() + 1
+        val editor = prefs.edit()
+        editor.putInt(KEY_FAILED_ATTEMPTS_COUNT, currentAttempts)
+        if (currentAttempts >= 5 && getLockoutStartTime() == 0L) {
+            editor.putLong(KEY_LOCKOUT_START_TIME, System.currentTimeMillis())
+        }
+        editor.apply()
+        return currentAttempts
+    }
+
+    fun resetFailedAttempts() {
+        prefs.edit()
+            .putInt(KEY_FAILED_ATTEMPTS_COUNT, 0)
+            .putLong(KEY_LOCKOUT_START_TIME, 0L)
+            .apply()
+    }
+
     fun hasVaultPin(): Boolean {
         return prefs.getString(KEY_VAULT_PIN, null) != null
     }
@@ -188,16 +229,27 @@ class SecurityManager(context: Context) {
     }
 
     fun verifyVaultPin(inputPin: String): Boolean {
+        if (getRemainingLockoutSeconds() > 0) {
+            return false
+        }
         val savedHash = prefs.getString(KEY_VAULT_PIN, null)
         if (savedHash == null) {
             if (inputPin.length >= 4) {
                 setVaultPin(inputPin)
+                resetFailedAttempts()
                 return true
             }
+            recordFailedAttempt()
             return false
         }
         val inputHash = calculateSha256("JUSTRA_PIN_$inputPin")
-        return inputHash == savedHash
+        val isCorrect = inputHash == savedHash
+        if (isCorrect) {
+            resetFailedAttempts()
+        } else {
+            recordFailedAttempt()
+        }
+        return isCorrect
     }
 
     fun getReadNotificationIds(): Set<String> {

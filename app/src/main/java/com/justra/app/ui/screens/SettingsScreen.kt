@@ -31,6 +31,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.justra.app.domain.model.LanguagePreference
+import com.justra.app.ui.components.NonGovernmentDisclaimerCard
 import com.justra.app.ui.theme.nyayaOutlinedTextFieldColors
 import com.justra.app.ui.viewmodel.NyayaMateViewModel
 import com.justra.app.util.BiometricAuthHelper
@@ -351,9 +352,9 @@ fun SettingsScreen(
                         }
 
                         val themeOptions = listOf(
-                            0 to if (isTa) "கணினி அமைப்பு (System Default)" else "System Default",
-                            1 to if (isTa) "ஒளி தீம் (Light Mode)" else "Light Mode",
-                            2 to if (isTa) "இருண்ட தீம் (Dark Mode)" else "Dark Mode"
+                            com.justra.app.ui.theme.ThemeMode.SYSTEM to if (isTa) "கணினி அமைப்பு (System Default)" else "System Default",
+                            com.justra.app.ui.theme.ThemeMode.LIGHT to if (isTa) "ஒளி தீம் (Light Mode)" else "Light Mode",
+                            com.justra.app.ui.theme.ThemeMode.DARK to if (isTa) "இருண்ட தீம் (Dark Mode)" else "Dark Mode"
                         )
 
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -366,7 +367,7 @@ fun SettingsScreen(
                                         selected = selectedThemeMode == mode,
                                         onClick = { viewModel.setThemeMode(mode) },
                                         colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary),
-                                        modifier = Modifier.testTag("settings_theme_radio_$mode")
+                                        modifier = Modifier.testTag("settings_theme_radio_${mode.modeValue}")
                                     )
                                     Text(
                                         text = label,
@@ -508,6 +509,9 @@ fun SettingsScreen(
                     }
                 }
             }
+            item {
+                NonGovernmentDisclaimerCard(modifier = Modifier.padding(top = 12.dp, bottom = 16.dp))
+            }
         }
     }
 
@@ -627,17 +631,13 @@ fun SettingsScreen(
             },
             title = {
                 Text(
-                    text = if (isTa) "சட்ட மறுப்பு & சேவை விதிமுறைகள்" else "Legal Disclaimer & Terms of Service",
+                    text = if (isTa) "அரசு தகவல்கள் & சார்பற்ற அறிவிப்பு மறுப்பு" else "Government Information & Non-Affiliation Disclaimer",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 )
             },
             text = {
                 Text(
-                    text = if (isTa) {
-                        "ஜஸ்ட்ரா (Justra) செயற்கை நுண்ணறிவு சட்ட உதவி தளம் மட்டுமே. இது சட்ட விழிப்புணர்வு மற்றும் மனு உருவாக்கத்திற்கு உதவுகிறது. இது வழக்கறிஞரின் நேரடி ஆலோசனையை மாற்ற முடியாது."
-                    } else {
-                        "Justra provides automated legal intake, statutory mapping, and draft generation under Indian statutes (BNS 2023, BNSS 2023, BSA 2023, CPA 2019). Information generated does not constitute formal attorney-client legal advice."
-                    },
+                    text = "Government Information & Non-Affiliation Disclaimer:\nJustra is an independent legal-technology application developed to assist citizens with statutory awareness and legal dispute preparation. Justra does not represent, endorse, or hold any official partnership with the Government of India or any state government entity. All statutory provisions, acts, and procedural references are derived directly from publicly available government databases (including indiacode.nic.in, consumerhelpline.gov.in, and cybercrime.gov.in).",
                     style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurface)
                 )
             },

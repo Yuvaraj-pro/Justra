@@ -45,14 +45,8 @@ class MainActivity : FragmentActivity() {
 
         setContent {
             val themeMode by viewModel.themeMode.collectAsState()
-            val systemInDark = androidx.compose.foundation.isSystemInDarkTheme()
-            val isDarkTheme = when (themeMode) {
-                2 -> true
-                0 -> systemInDark
-                else -> false
-            }
 
-            JustraTheme(darkTheme = isDarkTheme) {
+            JustraTheme(themeMode = themeMode) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
