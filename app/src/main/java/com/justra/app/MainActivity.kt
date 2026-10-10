@@ -1,6 +1,7 @@
 package com.justra.app
 
 import android.os.Bundle
+import android.view.MotionEvent
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -16,7 +17,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.compose.rememberNavController
 import com.justra.app.ui.navigation.JustraNavGraph
 import com.justra.app.ui.theme.JustraTheme
-import com.justra.app.ui.theme.WarmIvorySurface
 import com.justra.app.ui.viewmodel.JustraViewModel
 
 class MainActivity : FragmentActivity() {
@@ -34,6 +34,9 @@ class MainActivity : FragmentActivity() {
                     viewModel.handleAppBackgrounded()
                 }
                 Lifecycle.Event.ON_START -> {
+                    viewModel.handleAppForegrounded()
+                }
+                Lifecycle.Event.ON_RESUME -> {
                     viewModel.handleAppForegrounded()
                 }
                 else -> Unit
@@ -65,5 +68,9 @@ class MainActivity : FragmentActivity() {
             }
         }
     }
-}
 
+    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+        viewModel.recordUserActivity()
+        return super.dispatchTouchEvent(ev)
+    }
+}

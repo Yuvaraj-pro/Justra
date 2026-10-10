@@ -249,6 +249,22 @@ class JustraViewModel(application: Application) : AndroidViewModel(application) 
         setLanguage(languages[nextIndex])
     }
 
+    private val _isBiometricLockEnabled = MutableStateFlow(securityManager.isBiometricLockEnabled())
+    val isBiometricLockEnabled: StateFlow<Boolean> = _isBiometricLockEnabled.asStateFlow()
+
+    private val _hasVaultPin = MutableStateFlow(securityManager.hasVaultPin())
+    val hasVaultPin: StateFlow<Boolean> = _hasVaultPin.asStateFlow()
+
+    fun setBiometricLockEnabled(enabled: Boolean) {
+        _isBiometricLockEnabled.value = enabled
+        securityManager.setBiometricLockEnabled(enabled)
+    }
+
+    fun setVaultPin(pin: String) {
+        securityManager.setVaultPin(pin)
+        _hasVaultPin.value = true
+    }
+
     fun handleAppBackgrounded() {
         securityManager.recordAppBackgrounded()
     }
@@ -256,26 +272,37 @@ class JustraViewModel(application: Application) : AndroidViewModel(application) 
     fun handleAppForegrounded() {
         if (securityManager.shouldTriggerReauth()) {
             _isReauthRequired.value = true
+            _isAuthenticated.value = false
         }
+    }
+
+    fun recordUserActivity() {
+        securityManager.recordUserActivity()
     }
 
     fun completeReauthentication() {
         securityManager.onReauthSuccess()
         _isReauthRequired.value = false
         _isAuthenticated.value = true
+        securityManager.setAuthenticated(true)
         viewModelScope.launch {
-            _toastEvent.emit(if (_language.value == LanguagePreference.TAMIL) "பாதுகாப்பான அங்கீகாரம் முடிந்தது" else "Biometric re-authentication verified")
+            _toastEvent.emit(if (_language.value == LanguagePreference.TAMIL) "பாதுகாப்பான அங்கீகாரம் முடிந்தது" else "Biometric / PIN authentication verified")
         }
     }
 
     fun verifyPinForReauth(pin: String): Boolean {
-        completeReauthentication()
-        return true
+        return if (securityManager.verifyVaultPin(pin)) {
+            completeReauthentication()
+            true
+        } else {
+            false
+        }
     }
 
     fun forceLockVault() {
         securityManager.recordAppBackgrounded(System.currentTimeMillis() - (10 * 60 * 1000L))
         _isReauthRequired.value = true
+        _isAuthenticated.value = false
     }
 
     fun acceptConsent() {

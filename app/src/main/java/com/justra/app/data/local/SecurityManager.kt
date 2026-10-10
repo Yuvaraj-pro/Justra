@@ -9,8 +9,20 @@ import java.security.MessageDigest
 import java.util.UUID
 
 class SecurityManager(context: Context) {
-    private val prefs: SharedPreferences =
+    private val prefs: SharedPreferences = try {
+        val masterKey = androidx.security.crypto.MasterKey.Builder(context)
+            .setKeyScheme(androidx.security.crypto.MasterKey.KeyScheme.AES256_GCM)
+            .build()
+        androidx.security.crypto.EncryptedSharedPreferences.create(
+            context,
+            "justra_secure_vault_encrypted_prefs",
+            masterKey,
+            androidx.security.crypto.EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            androidx.security.crypto.EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    } catch (e: Exception) {
         context.getSharedPreferences("justra_secure_vault_prefs", Context.MODE_PRIVATE)
+    }
 
     val appContext: Context = context.applicationContext
 
@@ -56,19 +68,28 @@ class SecurityManager(context: Context) {
         return prefs.getLong(KEY_LAST_BACKGROUND_TIMESTAMP, 0L)
     }
 
+    fun recordUserActivity(timestamp: Long = System.currentTimeMillis()) {
+        prefs.edit().putLong(KEY_LAST_ACTIVE_TIMESTAMP, timestamp).apply()
+    }
+
     fun getLastActiveTimestamp(): Long {
         return prefs.getLong(KEY_LAST_ACTIVE_TIMESTAMP, System.currentTimeMillis())
     }
 
     fun shouldTriggerReauth(currentTime: Long = System.currentTimeMillis()): Boolean {
-        if (!isBiometricLockEnabled() || !hasAcceptedStatutoryConsent()) {
+        if (!isBiometricLockEnabled()) {
             return false
         }
+        val timeoutMs = getAutoLockTimeoutMinutes() * 60 * 1000L // 5 minutes = 300,000 ms
         val bgTime = getLastBackgroundTimestamp()
-        if (bgTime <= 0L) return false
-        val elapsed = currentTime - bgTime
-        val timeoutMs = getAutoLockTimeoutMinutes() * 60 * 1000L
-        return elapsed >= timeoutMs
+        if (bgTime > 0L && (currentTime - bgTime) >= timeoutMs) {
+            return true
+        }
+        val activeTime = getLastActiveTimestamp()
+        if (activeTime > 0L && (currentTime - activeTime) >= timeoutMs) {
+            return true
+        }
+        return false
     }
 
     fun onReauthSuccess() {
@@ -169,8 +190,11 @@ class SecurityManager(context: Context) {
     fun verifyVaultPin(inputPin: String): Boolean {
         val savedHash = prefs.getString(KEY_VAULT_PIN, null)
         if (savedHash == null) {
-            // Default first-time PIN accept any >= 4 digits or "1234"
-            return inputPin.length >= 4
+            if (inputPin.length >= 4) {
+                setVaultPin(inputPin)
+                return true
+            }
+            return false
         }
         val inputHash = calculateSha256("JUSTRA_PIN_$inputPin")
         return inputHash == savedHash

@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -168,7 +169,16 @@ fun JustraNavGraph(
     val activeNation by viewModel.activeJurisdiction.collectAsState()
     val userRole by viewModel.userRole.collectAsState()
 
+    val hasVaultPin by viewModel.hasVaultPin.collectAsState()
     val startDestination = JustraDestinations.SPLASH
+
+    LaunchedEffect(isReauthRequired) {
+        if (isReauthRequired) {
+            navController.navigate(JustraDestinations.AUTH) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         NavHost(
@@ -257,7 +267,11 @@ fun JustraNavGraph(
             composable(JustraDestinations.AUTH) {
                 AuthScreen(
                     currentLanguage = language,
+                    hasVaultPin = hasVaultPin,
+                    onVerifyPin = { pin -> viewModel.verifyPinForReauth(pin) },
+                    onSetVaultPin = { pin -> viewModel.setVaultPin(pin) },
                     onAuthenticated = {
+                        viewModel.authenticate()
                         navController.navigate(JustraDestinations.HOME) {
                             popUpTo(JustraDestinations.AUTH) { inclusive = true }
                         }

@@ -27,9 +27,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
@@ -66,7 +66,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -97,15 +96,8 @@ import com.justra.app.domain.model.WorldRegion
 import com.justra.app.domain.model.WorldWideLawDataType
 import com.justra.app.domain.model.WorldWideLawDocument
 import com.justra.app.domain.model.WorldWideLawSource
-import com.justra.app.ui.theme.CharcoalTextPrimary
-import com.justra.app.ui.theme.DeepIndigoSlatePrimary
-import com.justra.app.ui.theme.PaleSandstoneVariant
-import com.justra.app.ui.theme.PrimaryContainerSlate
 import com.justra.app.ui.theme.SageGreenSuccessContainer
 import com.justra.app.ui.theme.SageGreenSuccessText
-import com.justra.app.ui.theme.TerracottaAccentSecondary
-import com.justra.app.ui.theme.WarmIvorySurface
-import com.justra.app.ui.theme.WarmOutline
 import com.justra.app.ui.theme.nyayaOutlinedTextFieldColors
 import com.justra.app.ui.viewmodel.NyayaMateViewModel
 
@@ -171,7 +163,8 @@ fun WorldWideLawScreen(
                                 text = if (isTa) "உலகளாவிய சட்டத் தரவுத்தளம்" else "World Wide Law Hub",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
-                                    fontFamily = FontFamily.Serif
+                                    fontFamily = FontFamily.Serif,
+                                    color = MaterialTheme.colorScheme.onSurface
                                 ),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -203,7 +196,8 @@ fun WorldWideLawScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
@@ -217,13 +211,13 @@ fun WorldWideLawScreen(
                         Icon(
                             imageVector = Icons.Default.Public,
                             contentDescription = "Live Dashboard",
-                            tint = DeepIndigoSlatePrimary
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = WarmIvorySurface,
-                    titleContentColor = CharcoalTextPrimary
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -232,13 +226,13 @@ fun WorldWideLawScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(WarmIvorySurface)
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            // Live Open Data Stats & Legal Data Hunter Banner
+            // Live Open Data Stats Banner Card
             Card(
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = PrimaryContainerSlate),
-                border = androidx.compose.foundation.BorderStroke(1.dp, DeepIndigoSlatePrimary.copy(alpha = 0.25f)),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -253,14 +247,14 @@ fun WorldWideLawScreen(
                             Icon(
                                 imageVector = Icons.Default.Storage,
                                 contentDescription = null,
-                                tint = DeepIndigoSlatePrimary,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(
                                 text = if (isTa) "திறந்தநிலை சட்ட உள்கட்டமைப்பு" else "Open Legal Infrastructure",
                                 style = MaterialTheme.typography.labelMedium.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = DeepIndigoSlatePrimary
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                         }
@@ -268,7 +262,7 @@ fun WorldWideLawScreen(
                         Text(
                             text = "legaldatahunter.com",
                             style = MaterialTheme.typography.labelSmall.copy(
-                                color = TerracottaAccentSecondary,
+                                color = MaterialTheme.colorScheme.secondary,
                                 fontWeight = FontWeight.Bold
                             ),
                             modifier = Modifier.clickable {
@@ -308,8 +302,8 @@ fun WorldWideLawScreen(
             // Tabs Row
             PrimaryTabRow(
                 selectedTabIndex = selectedTab,
-                containerColor = WarmIvorySurface,
-                contentColor = DeepIndigoSlatePrimary,
+                containerColor = MaterialTheme.colorScheme.background,
+                contentColor = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Tab(
@@ -318,7 +312,8 @@ fun WorldWideLawScreen(
                     text = {
                         Text(
                             text = if (isTa) "ஆதாரங்கள் (${filteredSources.size})" else "Sources (${filteredSources.size})",
-                            fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal
+                            fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal,
+                            color = if (selectedTab == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 )
@@ -328,7 +323,8 @@ fun WorldWideLawScreen(
                     text = {
                         Text(
                             text = if (isTa) "தீர்ப்புகள் & தடைகள்" else "Case Law & Sanctions",
-                            fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal
+                            fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal,
+                            color = if (selectedTab == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 )
@@ -338,14 +334,15 @@ fun WorldWideLawScreen(
                     text = {
                         BadgedBox(badge = {
                             if (pinnedSources.isNotEmpty()) {
-                                Badge(containerColor = TerracottaAccentSecondary) {
+                                Badge(containerColor = MaterialTheme.colorScheme.secondary) {
                                     Text(text = "${pinnedSources.size}")
                                 }
                             }
                         }) {
                             Text(
                                 text = if (isTa) "ஆஃப்லைன் பெட்டகம்" else "Offline Vault",
-                                fontWeight = if (selectedTab == 2) FontWeight.Bold else FontWeight.Normal
+                                fontWeight = if (selectedTab == 2) FontWeight.Bold else FontWeight.Normal,
+                                color = if (selectedTab == 2) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -364,12 +361,12 @@ fun WorldWideLawScreen(
                         )
                     },
                     leadingIcon = {
-                        Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
+                        Icon(imageVector = Icons.Default.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     },
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
                             IconButton(onClick = { searchQuery = "" }) {
-                                Text("✕", fontWeight = FontWeight.Bold)
+                                Text("✕", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                             }
                         }
                     },
@@ -403,8 +400,10 @@ fun WorldWideLawScreen(
                                     )
                                 },
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = DeepIndigoSlatePrimary,
-                                    selectedLabelColor = Color.White
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    labelColor = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                         }
@@ -422,7 +421,13 @@ fun WorldWideLawScreen(
                         FilterChip(
                             selected = selectedDataType == null,
                             onClick = { selectedDataType = null },
-                            label = { Text(if (isTa) "அனைத்து வகைகள்" else "All Types", style = MaterialTheme.typography.labelSmall) }
+                            label = { Text(if (isTa) "அனைத்து வகைகள்" else "All Types", style = MaterialTheme.typography.labelSmall) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                labelColor = MaterialTheme.colorScheme.onSurface
+                            )
                         )
 
                         WorldWideLawDataType.values().forEach { dt ->
@@ -437,8 +442,10 @@ fun WorldWideLawScreen(
                                     )
                                 },
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = PrimaryContainerSlate,
-                                    selectedLabelColor = DeepIndigoSlatePrimary
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    labelColor = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                         }
@@ -446,7 +453,7 @@ fun WorldWideLawScreen(
                 }
             }
 
-            HorizontalDivider(color = WarmOutline.copy(alpha = 0.5f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
 
             // Main Content Area based on Tab
             when (selectedTab) {
@@ -617,7 +624,8 @@ fun WorldWideLawScreen(
                             text = doc.title,
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
-                                fontFamily = FontFamily.Serif
+                                fontFamily = FontFamily.Serif,
+                                color = MaterialTheme.colorScheme.onSurface
                             ),
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
@@ -635,7 +643,7 @@ fun WorldWideLawScreen(
                 Column(modifier = Modifier.verticalScrollableColumn()) {
                     Surface(
                         shape = RoundedCornerShape(8.dp),
-                        color = PrimaryContainerSlate,
+                        color = MaterialTheme.colorScheme.surfaceVariant,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(10.dp)) {
@@ -643,7 +651,7 @@ fun WorldWideLawScreen(
                                 text = if (isTa) "சட்ட விகிதம் & தீர்ப்பு சாரம்சம்:" else "Legal Ratio & Enforcement Finding:",
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = DeepIndigoSlatePrimary
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                             Spacer(modifier = Modifier.height(4.dp))
@@ -651,7 +659,7 @@ fun WorldWideLawScreen(
                                 text = if (isTa) doc.keyHoldingsTa else doc.keyHoldingsEn,
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     fontWeight = FontWeight.Medium,
-                                    color = CharcoalTextPrimary
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                         }
@@ -670,7 +678,7 @@ fun WorldWideLawScreen(
 
                     Surface(
                         shape = RoundedCornerShape(8.dp),
-                        color = PaleSandstoneVariant,
+                        color = MaterialTheme.colorScheme.surfaceVariant,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
@@ -678,7 +686,8 @@ fun WorldWideLawScreen(
                             style = MaterialTheme.typography.bodySmall.copy(
                                 fontFamily = FontFamily.Monospace,
                                 fontSize = 11.sp,
-                                lineHeight = 16.sp
+                                lineHeight = 16.sp,
+                                color = MaterialTheme.colorScheme.onSurface
                             ),
                             modifier = Modifier.padding(10.dp)
                         )
@@ -692,7 +701,10 @@ fun WorldWideLawScreen(
                             viewModel.toggleSaveWorldWideLawDocToVault(doc.id, doc.isSavedToVault)
                             selectedDocumentForViewing = doc.copy(isSavedToVault = !doc.isSavedToVault)
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = DeepIndigoSlatePrimary)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
                     ) {
                         Icon(
                             imageVector = if (doc.isSavedToVault) Icons.Default.CheckCircle else Icons.Default.Security,
@@ -724,7 +736,8 @@ fun WorldWideLawScreen(
                 TextButton(onClick = { selectedDocumentForViewing = null }) {
                     Text(if (isTa) "மூடுக" else "Close")
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 }
@@ -742,32 +755,29 @@ fun CountryLawCard(
 ) {
     Card(
         modifier = modifier.fillMaxWidth().padding(vertical = 6.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF3ECE1)), // வெளிர் பின்னணி
-        border = BorderStroke(1.dp, Color(0xFFD4CAB8))
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
-            // நாடு / அதிகார வரம்பு தலைப்பு
             Text(
-                text = countryLaw.jurisdictionName, // e.g., "United Kingdom / Common Law"
+                text = countryLaw.jurisdictionName,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF0F1E36) // Sovereign Navy (தெளிவான அடர் நிறம்)
+                color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(4.dp))
-            // சட்ட விளக்கம்
             Text(
                 text = countryLaw.statuteSummary,
                 fontSize = 13.sp,
-                color = Color(0xFF14181F), // Dark Ink (100% படிக்கக்கூடியது)
+                color = MaterialTheme.colorScheme.onSurface,
                 lineHeight = 18.sp
             )
             Spacer(modifier = Modifier.height(6.dp))
-            // அதிகார மையம் / போர்ட்டல்
             Text(
                 text = "Authority: ${countryLaw.enforcingAuthority}",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFFC85A32) // Terracotta accent
+                color = MaterialTheme.colorScheme.secondary
             )
         }
     }
@@ -787,8 +797,8 @@ fun WorldWideLawSourceCard(
 
     Card(
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF3ECE1)), // Sandstone surface
-        border = BorderStroke(1.dp, Color(0xFFD4CAB8)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)),
         modifier = modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
@@ -810,20 +820,20 @@ fun WorldWideLawSourceCard(
                                 text = source.id,
                                 style = MaterialTheme.typography.labelMedium.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = DeepIndigoSlatePrimary,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontFamily = FontFamily.Monospace
                                 )
                             )
                             Surface(
                                 shape = RoundedCornerShape(4.dp),
-                                color = PrimaryContainerSlate
+                                color = MaterialTheme.colorScheme.surfaceVariant
                             ) {
                                 Text(
                                     text = if (isTa) source.countryNameTa else source.countryNameEn,
                                     style = MaterialTheme.typography.labelSmall.copy(
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Medium,
-                                        color = DeepIndigoSlatePrimary
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     ),
                                     modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
                                 )
@@ -836,7 +846,7 @@ fun WorldWideLawSourceCard(
                     Icon(
                         imageVector = if (isPinned) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                         contentDescription = "Pin Offline",
-                        tint = if (isPinned) TerracottaAccentSecondary else Color.Gray
+                        tint = if (isPinned) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -848,7 +858,8 @@ fun WorldWideLawSourceCard(
                 text = source.name,
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Serif
+                    fontFamily = FontFamily.Serif,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             )
 
@@ -862,13 +873,13 @@ fun WorldWideLawSourceCard(
                 Icon(
                     imageVector = Icons.Default.Shield,
                     contentDescription = null,
-                    tint = DeepIndigoSlatePrimary,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(14.dp)
                 )
                 Text(
                     text = source.lawEnforcementDomain,
                     style = MaterialTheme.typography.bodySmall.copy(
-                        color = DeepIndigoSlatePrimary,
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Medium
                     )
                 )
@@ -886,13 +897,13 @@ fun WorldWideLawSourceCard(
                 source.dataTypes.forEach { dt ->
                     Surface(
                         shape = RoundedCornerShape(4.dp),
-                        color = PaleSandstoneVariant
+                        color = MaterialTheme.colorScheme.surfaceVariant
                     ) {
                         Text(
                             text = if (isTa) dt.titleTa else dt.titleEn,
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontSize = 10.sp,
-                                color = CharcoalTextPrimary
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             ),
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                         )
@@ -917,13 +928,13 @@ fun WorldWideLawSourceCard(
                 source.licenseName?.let { lic ->
                     Surface(
                         shape = RoundedCornerShape(4.dp),
-                        color = Color(0xFFF1EFE8)
+                        color = MaterialTheme.colorScheme.surfaceVariant
                     ) {
                         Text(
                             text = lic,
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontSize = 9.sp,
-                                color = Color.DarkGray
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             ),
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                         )
@@ -953,16 +964,16 @@ fun WorldWideLawSourceCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 10.dp)
-                        .background(PaleSandstoneVariant, RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
                         .padding(10.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Icon(imageVector = Icons.Default.Code, contentDescription = null, modifier = Modifier.size(14.dp), tint = DeepIndigoSlatePrimary)
+                        Icon(imageVector = Icons.Default.Code, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
                         Text(
                             text = "Collection Script: ${source.collectionScriptPath}",
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontFamily = FontFamily.Monospace,
-                                color = DeepIndigoSlatePrimary
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         )
                     }
@@ -971,7 +982,7 @@ fun WorldWideLawSourceCard(
                         text = "Standard Normalization Output:\n• _id, _source, _type, title, text, date, url\n• Auth: ${source.auth} • Commercial: ${if (source.commercialUse) "Allowed" else "Non-commercial"}",
                         style = MaterialTheme.typography.bodySmall.copy(
                             fontSize = 10.sp,
-                            color = Color.DarkGray,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontFamily = FontFamily.Monospace
                         )
                     )
@@ -988,16 +999,16 @@ fun WorldWideLawSourceCard(
             ) {
                 TextButton(
                     onClick = { isExpanded = !isExpanded },
-                    colors = ButtonDefaults.textButtonColors(contentColor = DeepIndigoSlatePrimary)
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Text(
                         text = if (isExpanded) (if (isTa) "குறைவாக" else "Less") else (if (isTa) "தொழில்நுட்ப விவரம்" else "Script Details"),
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = DeepIndigoSlatePrimary)
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     )
                     Icon(
                         imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                         contentDescription = null,
-                        tint = DeepIndigoSlatePrimary,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(16.dp)
                     )
                 }
@@ -1006,15 +1017,15 @@ fun WorldWideLawSourceCard(
                     OutlinedButton(
                         onClick = onViewSampleDocs,
                         shape = RoundedCornerShape(8.dp),
-                        border = BorderStroke(1.dp, DeepIndigoSlatePrimary),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = DeepIndigoSlatePrimary),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
                     ) {
-                        Icon(imageVector = Icons.Default.Description, contentDescription = null, tint = DeepIndigoSlatePrimary, modifier = Modifier.size(14.dp))
+                        Icon(imageVector = Icons.Default.Description, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = if (isTa) "மாதிரி ஆவணம்" else "Sample Doc",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = DeepIndigoSlatePrimary)
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                         )
                     }
 
@@ -1022,16 +1033,16 @@ fun WorldWideLawSourceCard(
                         onClick = onOpenUrl,
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = DeepIndigoSlatePrimary,
-                            contentColor = Color.White
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
                         ),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
                     ) {
-                        Icon(imageVector = Icons.Default.OpenInBrowser, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                        Icon(imageVector = Icons.Default.OpenInBrowser, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(14.dp))
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = if (isTa) "போர்டல்" else "Portal",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = Color.White)
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                         )
                     }
                 }
@@ -1051,8 +1062,8 @@ fun WorldWideLawDocCard(
 ) {
     Card(
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = androidx.compose.foundation.BorderStroke(1.dp, WarmOutline.copy(alpha = 0.6f)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)),
         modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() }
@@ -1072,21 +1083,21 @@ fun WorldWideLawDocCard(
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             Surface(
                                 shape = RoundedCornerShape(4.dp),
-                                color = PrimaryContainerSlate
+                                color = MaterialTheme.colorScheme.surfaceVariant
                             ) {
                                 Text(
                                     text = document.sourceId,
                                     style = MaterialTheme.typography.labelSmall.copy(
                                         fontFamily = FontFamily.Monospace,
                                         fontWeight = FontWeight.Bold,
-                                        color = DeepIndigoSlatePrimary
+                                        color = MaterialTheme.colorScheme.onSurface
                                     ),
                                     modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
                                 )
                             }
                             Text(
                                 text = document.date,
-                                style = MaterialTheme.typography.labelSmall.copy(color = Color.Gray)
+                                style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                             )
                         }
                     }
@@ -1094,13 +1105,13 @@ fun WorldWideLawDocCard(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onShare) {
-                        Icon(imageVector = Icons.Default.Share, contentDescription = "Share", modifier = Modifier.size(18.dp))
+                        Icon(imageVector = Icons.Default.Share, contentDescription = "Share", tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp))
                     }
                     IconButton(onClick = onToggleSave) {
                         Icon(
                             imageVector = if (document.isSavedToVault) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                             contentDescription = "Save to Vault",
-                            tint = if (document.isSavedToVault) TerracottaAccentSecondary else Color.Gray,
+                            tint = if (document.isSavedToVault) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -1113,7 +1124,8 @@ fun WorldWideLawDocCard(
                 text = document.title,
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Serif
+                    fontFamily = FontFamily.Serif,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             )
 
@@ -1126,13 +1138,13 @@ fun WorldWideLawDocCard(
                 Icon(
                     imageVector = Icons.Default.Gavel,
                     contentDescription = null,
-                    tint = TerracottaAccentSecondary,
+                    tint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.size(14.dp)
                 )
                 Text(
                     text = document.lawEnforcementSubject,
                     style = MaterialTheme.typography.bodySmall.copy(
-                        color = TerracottaAccentSecondary,
+                        color = MaterialTheme.colorScheme.secondary,
                         fontWeight = FontWeight.SemiBold
                     )
                 )
@@ -1142,7 +1154,7 @@ fun WorldWideLawDocCard(
 
             Surface(
                 shape = RoundedCornerShape(8.dp),
-                color = PaleSandstoneVariant,
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(10.dp)) {
@@ -1150,14 +1162,14 @@ fun WorldWideLawDocCard(
                         text = if (isTa) "முக்கிய சட்டக் கொள்கை (Ratio Decidendi):" else "Core Legal Principle (Ratio Decidendi):",
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = FontWeight.Bold,
-                            color = CharcoalTextPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = if (isTa) document.keyHoldingsTa else document.keyHoldingsEn,
                         style = MaterialTheme.typography.bodySmall.copy(
-                            color = CharcoalTextPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     )
                 }
@@ -1180,7 +1192,7 @@ fun MetricItem(
             text = value,
             style = MaterialTheme.typography.titleMedium.copy(
                 fontWeight = FontWeight.Bold,
-                color = DeepIndigoSlatePrimary
+                color = MaterialTheme.colorScheme.onSurface
             )
         )
         Text(
@@ -1212,20 +1224,20 @@ fun EmptyStateView(
             Icon(
                 imageVector = Icons.Default.Info,
                 contentDescription = null,
-                tint = Color.Gray,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(40.dp)
             )
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold,
-                    color = CharcoalTextPrimary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             )
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall.copy(
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
                 modifier = Modifier.padding(horizontal = 24.dp)
             )
