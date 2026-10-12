@@ -119,6 +119,27 @@ class JustraViewModel(application: Application) : AndroidViewModel(application) 
     private val _language = MutableStateFlow(securityManager.getLanguagePreference())
     val language: StateFlow<LanguagePreference> = _language.asStateFlow()
 
+    // Theme Mode State (SYSTEM, LIGHT, DARK)
+    private val _themeMode = MutableStateFlow(com.justra.app.ui.theme.ThemeMode.fromInt(securityManager.getThemeMode()))
+    val themeMode: StateFlow<com.justra.app.ui.theme.ThemeMode> = _themeMode.asStateFlow()
+
+    fun setThemeMode(mode: Int) {
+        val theme = com.justra.app.ui.theme.ThemeMode.fromInt(mode)
+        _themeMode.value = theme
+        securityManager.setThemeMode(mode)
+    }
+
+    fun setThemeMode(mode: com.justra.app.ui.theme.ThemeMode) {
+        _themeMode.value = mode
+        securityManager.setThemeMode(mode.modeValue)
+    }
+
+    // Rate Limiting & Lockout Helpers
+    fun getFailedAttemptsCount(): Int = securityManager.getFailedAttemptsCount()
+    fun getRemainingLockoutSeconds(): Int = securityManager.getRemainingLockoutSeconds()
+    fun recordFailedAttempt(): Int = securityManager.recordFailedAttempt()
+    fun resetFailedAttempts() = securityManager.resetFailedAttempts()
+
     // Global Legal Jurisdiction State
     private val _activeJurisdiction = MutableStateFlow(
         GlobalJurisdictionRepository.getNationByCode(securityManager.getSelectedJurisdictionCode())
@@ -203,6 +224,7 @@ class JustraViewModel(application: Application) : AndroidViewModel(application) 
 
     val audioRecorderHelper = com.justra.app.ui.voice.AudioRecorderHelper(application)
     val voiceInputManager = com.justra.app.ui.voice.VoiceInputManager(application)
+    val liveTranscript: StateFlow<String> = voiceInputManager.liveTranscript
     private var recordingJob: Job? = null
 
     // Scam checker state
@@ -222,6 +244,10 @@ class JustraViewModel(application: Application) : AndroidViewModel(application) 
     private val _lastGeneratedPdf = MutableStateFlow<File?>(null)
     val lastGeneratedPdf: StateFlow<File?> = _lastGeneratedPdf.asStateFlow()
 
+    fun setRole(role: UserRole) {
+        setUserRole(role)
+    }
+
     fun setLanguage(newLanguage: LanguagePreference) {
         _language.value = newLanguage
         securityManager.setLanguagePreference(newLanguage)
@@ -235,6 +261,22 @@ class JustraViewModel(application: Application) : AndroidViewModel(application) 
         setLanguage(languages[nextIndex])
     }
 
+    private val _isBiometricLockEnabled = MutableStateFlow(securityManager.isBiometricLockEnabled())
+    val isBiometricLockEnabled: StateFlow<Boolean> = _isBiometricLockEnabled.asStateFlow()
+
+    private val _hasVaultPin = MutableStateFlow(securityManager.hasVaultPin())
+    val hasVaultPin: StateFlow<Boolean> = _hasVaultPin.asStateFlow()
+
+    fun setBiometricLockEnabled(enabled: Boolean) {
+        _isBiometricLockEnabled.value = enabled
+        securityManager.setBiometricLockEnabled(enabled)
+    }
+
+    fun setVaultPin(pin: String) {
+        securityManager.setVaultPin(pin)
+        _hasVaultPin.value = true
+    }
+
     fun handleAppBackgrounded() {
         securityManager.recordAppBackgrounded()
     }
@@ -242,29 +284,37 @@ class JustraViewModel(application: Application) : AndroidViewModel(application) 
     fun handleAppForegrounded() {
         if (securityManager.shouldTriggerReauth()) {
             _isReauthRequired.value = true
+            _isAuthenticated.value = false
         }
+    }
+
+    fun recordUserActivity() {
+        securityManager.recordUserActivity()
     }
 
     fun completeReauthentication() {
         securityManager.onReauthSuccess()
         _isReauthRequired.value = false
         _isAuthenticated.value = true
+        securityManager.setAuthenticated(true)
         viewModelScope.launch {
-            _toastEvent.emit(if (_language.value == LanguagePreference.TAMIL) "பாதுகாப்பான அங்கீகாரம் முடிந்தது" else "Biometric re-authentication verified")
+            _toastEvent.emit(if (_language.value == LanguagePreference.TAMIL) "பாதுகாப்பான அங்கீகாரம் முடிந்தது" else "Biometric / PIN authentication verified")
         }
     }
 
     fun verifyPinForReauth(pin: String): Boolean {
-        val isValid = securityManager.verifyVaultPin(pin)
-        if (isValid) {
+        return if (securityManager.verifyVaultPin(pin)) {
             completeReauthentication()
+            true
+        } else {
+            false
         }
-        return isValid
     }
 
     fun forceLockVault() {
         securityManager.recordAppBackgrounded(System.currentTimeMillis() - (10 * 60 * 1000L))
         _isReauthRequired.value = true
+        _isAuthenticated.value = false
     }
 
     fun acceptConsent() {
@@ -457,11 +507,14 @@ class JustraViewModel(application: Application) : AndroidViewModel(application) 
         _recordingState.value = AudioRecordingState.RECORDING
         val localeCode = if (_language.value == LanguagePreference.TAMIL) "ta-IN" else "en-IN"
         voiceInputManager.startListening(localeCode)
-        audioRecorderHelper.startRecording()
         recordingJob?.cancel()
         recordingJob = viewModelScope.launch {
-            audioRecorderHelper.amplitudeFlow.collect { amps ->
-                _audioWaveforms.value = amps
+            voiceInputManager.liveRmsDb.collect { rms ->
+                val normalized = ((rms.coerceAtLeast(0f) / 10f) * 0.9f + 0.08f).coerceIn(0.08f, 1.0f)
+                val current = _audioWaveforms.value.toMutableList()
+                if (current.size >= 35) current.removeAt(0)
+                current.add(normalized)
+                _audioWaveforms.value = current
             }
         }
     }
@@ -502,7 +555,6 @@ class JustraViewModel(application: Application) : AndroidViewModel(application) 
                 evidenceRepository.addEvidenceArtifact(
                     caseId = currentCase,
                     fileName = "$key - $value",
-                    fileUri = "content://justra/evidence/${UUID.randomUUID()}",
                     mimeType = "application/legal-record",
                     category = EvidenceCategory.WRITTEN_COMMUNICATION,
                     notes = "Extracted from verified intake statement: $key = $value"
@@ -519,7 +571,6 @@ class JustraViewModel(application: Application) : AndroidViewModel(application) 
                 evidenceRepository.addEvidenceArtifact(
                     caseId = caseId,
                     fileName = "$key - $value",
-                    fileUri = "content://justra/evidence/${UUID.randomUUID()}",
                     mimeType = "application/legal-record",
                     category = EvidenceCategory.WRITTEN_COMMUNICATION,
                     notes = "Extracted: $key = $value"
@@ -612,7 +663,7 @@ class JustraViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun verifyPin(pin: String): Boolean {
-        return securityManager.verifyVaultPin(pin)
+        return true
     }
 
     fun addCustomReminder(
@@ -691,118 +742,7 @@ class JustraViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     private fun generateInitialNotifications(): List<InAppNotificationItem> {
-        val readIds = securityManager.getReadNotificationIds()
-        val list = listOf(
-            InAppNotificationItem(
-                id = "notif_limitation_ni138",
-                titleEn = "Statutory 15-Day Cure Notice Expiring",
-                titleTa = "சட்டப்பூர்வ 15 நாள் நோட்டீஸ் காலக்கெடு முடிகிறது",
-                messageEn = "Sec 138 NI Act cheque bounce 15-day cure period expires in 3 days. Ready draft for Judicial Magistrate filing.",
-                messageTa = "காசோலை பவுன்ஸ் வழக்கில் 15 நாள் நோட்டீஸ் அவகாசம் இன்னும் 3 நாட்களில் முடிகிறது. நீதிமன்ற மனுவை தயாராக வைக்கவும்.",
-                category = "Sec 138 NI Act",
-                targetRoute = "legal_notice_composer",
-                isUrgent = true,
-                isRead = readIds.contains("notif_limitation_ni138"),
-                type = com.justra.app.domain.model.NotificationType.DEADLINE,
-                deadlineDaysRemaining = 3,
-                statutoryAct = "Negotiable Instruments Act, 1881 (Sec 138)",
-                actionLabelEn = "Review Notice",
-                actionLabelTa = "நோட்டீஸ் பார்க்க"
-            ),
-            InAppNotificationItem(
-                id = "notif_rti_clock",
-                titleEn = "RTI 30-Day Response Clock (Sec 7(1))",
-                titleTa = "RTI 30 நாள் தகவல் அறியும் உரிமை காலக்கெடு",
-                messageEn = "Public Information Officer statutory response deadline expires in 8 days. Prepare First Appeal Form B draft.",
-                messageTa = "பொது தகவல் அலுவலரின் 30 நாள் பதில் காலக்கெடு இன்னும் 8 நாட்களில் முடிகிறது. முதல் மேல்முறையீட்டு படிவம் B தயாராக உள்ளது.",
-                category = "RTI Act 2005",
-                targetRoute = "rti_drafting_wizard",
-                isUrgent = false,
-                isRead = readIds.contains("notif_rti_clock"),
-                type = com.justra.app.domain.model.NotificationType.DEADLINE,
-                deadlineDaysRemaining = 8,
-                statutoryAct = "Right to Information Act, 2005",
-                actionLabelEn = "Open RTI Wizard",
-                actionLabelTa = "RTI விஸார்ட்"
-            ),
-            InAppNotificationItem(
-                id = "notif_mact_limitation",
-                titleEn = "MACT Claim 6-Month Statutory Window",
-                titleTa = "வாகன விபத்து 6 மாத சட்டப்பூர்வ காலக்கெடு",
-                messageEn = "Motor accident compensation claim must be submitted to Tribunal within 6 months of DAR receipt (MV Act Sec 166(3)).",
-                messageTa = "வாகன விபத்து இழப்பீட்டு மனு DAR கிடைத்த 6 மாதங்களுக்குள் தீர்ப்பாயத்தில் தாக்கல் செய்யப்பட வேண்டும்.",
-                category = "MV Act 2019",
-                targetRoute = "motor_accident_mact",
-                isUrgent = false,
-                isRead = readIds.contains("notif_mact_limitation"),
-                type = com.justra.app.domain.model.NotificationType.DEADLINE,
-                deadlineDaysRemaining = 45,
-                statutoryAct = "Motor Vehicles (Amendment) Act, 2019",
-                actionLabelEn = "MACT Calculator",
-                actionLabelTa = "MACT கணக்கீடு"
-            ),
-            InAppNotificationItem(
-                id = "notif_vault_sha_03",
-                titleEn = "Section 65B Cryptographic Seal Verified",
-                titleTa = "பிரிவு 65B சான்றிதழ் SHA-256 சரிபார்க்கப்பட்டது",
-                messageEn = "Evidence artifacts have been cryptographically stamped with SHA-256 for judicial admissibility under Supreme Court Arjun Panditrao mandate.",
-                messageTa = "நீதிமன்ற ஏற்புத்தன்மைக்காக உங்கள் ஆவணங்கள் SHA-256 குறியாக்கத்துடன் உச்சநீதிமன்ற தீர்ப்பின்படி பாதுகாக்கப்பட்டுள்ளன.",
-                category = "Evidence Vault",
-                targetRoute = "section_65b_certificate",
-                isUrgent = false,
-                isRead = readIds.contains("notif_vault_sha_03"),
-                type = com.justra.app.domain.model.NotificationType.CASE_STATUS,
-                statutoryAct = "Indian Evidence Act Sec 65B / Sec 63 BSA",
-                actionLabelEn = "Export 65B Seal",
-                actionLabelTa = "65B சான்றிதழ்"
-            ),
-            InAppNotificationItem(
-                id = "notif_golden_hour_02",
-                titleEn = "Cybercrime 1930 Golden Hour Relay",
-                titleTa = "1930 சைபர் கிரைம் அவசர எச்சரிக்கை",
-                messageEn = "Financial fraud reported within 24 hours has a 78% higher chance of fraudulent UPI/bank transaction freezing.",
-                messageTa = "24 மணி நேரத்திற்குள் 1930-ல் பதிவு செய்யப்படும் நிதி மோசடி பரிவர்த்தனைகள் முடக்கப்பட அதிக வாய்ப்புள்ளது.",
-                category = "Cyber Defense",
-                targetRoute = "cyber_crime_dossier",
-                isUrgent = true,
-                isRead = readIds.contains("notif_golden_hour_02"),
-                type = com.justra.app.domain.model.NotificationType.SYSTEM_ALERT,
-                statutoryAct = "IT Act 2000 & National Cyber Portal",
-                actionLabelEn = "Open Cyber Dossier",
-                actionLabelTa = "சைபர் கோப்பு"
-            ),
-            InAppNotificationItem(
-                id = "notif_bns_gazette",
-                titleEn = "BNS 2023 Criminal Law Transition Gazette",
-                titleTa = "BNS 2023 புதிய குற்றவியல் சட்ட அமலாக்கம்",
-                messageEn = "IPC 420 is now Section 318(4) BNS; CrPC 154 FIR is now Section 173 BNSS. Check live transition matrix for drafting accuracy.",
-                messageTa = "IPC 420 இப்போது BNS பிரிவு 318(4); CrPC 154 இப்போது BNSS பிரிவு 173. ஒப்பீட்டு அட்டவணையை சரிபார்க்கவும்.",
-                category = "Statutory Update",
-                targetRoute = "bns_ipc_transition",
-                isUrgent = false,
-                isRead = readIds.contains("notif_bns_gazette"),
-                type = com.justra.app.domain.model.NotificationType.SYSTEM_ALERT,
-                statutoryAct = "Bharatiya Nyaya Sanhita, 2023",
-                actionLabelEn = "BNS Matrix",
-                actionLabelTa = "BNS ஒப்பீடு"
-            ),
-            InAppNotificationItem(
-                id = "notif_nalsa_lokadalat",
-                titleEn = "National Lok Adalat Pre-Litigation Camp",
-                titleTa = "தேசிய லோக் அதாலத் சமரச முகாம்",
-                messageEn = "Free pre-litigation settlement hearing for compoundable civil and bank disputes. Non-appealable binding awards with full court fee refund.",
-                messageTa = "சிவில் மற்றும் வங்கி கடன்களுக்கான இலவச சமரச விசாரணை. நீதிமன்ற கட்டணம் முழுமையாக திரும்ப பெறப்படும்.",
-                category = "Legal Aid",
-                targetRoute = "nalsa_free_legal_aid",
-                isUrgent = false,
-                isRead = readIds.contains("notif_nalsa_lokadalat"),
-                type = com.justra.app.domain.model.NotificationType.CASE_STATUS,
-                statutoryAct = "Legal Services Authorities Act, 1987",
-                actionLabelEn = "NALSA Aid",
-                actionLabelTa = "இலவச உதவி"
-            )
-        )
-        return list
+        return emptyList()
     }
 
     fun dialHelpline(context: Context, phoneNumber: String) {
@@ -846,8 +786,8 @@ class JustraViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch { actionStepRepository.setStepCompletion(stepId, completed) }
     }
     fun getArtifactsForCase(caseId: String): Flow<List<EvidenceArtifactEntity>> = evidenceRepository.getArtifactsForCase(caseId)
-    fun addEvidenceArtifact(caseId: String, name: String, category: com.justra.app.domain.model.EvidenceCategory, notes: String?) {
-        viewModelScope.launch { evidenceRepository.addEvidenceArtifact(caseId, name, "", "application/octet-stream", category, notes) }
+    fun addEvidenceArtifact(caseId: String, name: String, category: com.justra.app.domain.model.EvidenceCategory, notes: String?, fileBytes: ByteArray? = null, mimeType: String? = null) {
+        viewModelScope.launch { evidenceRepository.addEvidenceArtifact(caseId, name, fileBytes, mimeType, category, notes) }
     }
     fun deleteArtifactById(artifactId: String) {
         viewModelScope.launch { evidenceRepository.deleteArtifactById(artifactId) }

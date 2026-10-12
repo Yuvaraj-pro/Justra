@@ -160,11 +160,15 @@ fun ScamCheckerScreen(
                                         inputText = clip
                                     }
                                 },
+                                colors = ButtonDefaults.textButtonColors(contentColor = DeepIndigoSlatePrimary),
                                 modifier = Modifier.testTag("paste_clipboard_button")
                             ) {
-                                Icon(Icons.Default.ContentPaste, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Icon(Icons.Default.ContentPaste, contentDescription = null, tint = DeepIndigoSlatePrimary, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text(if (currentLanguage == LanguagePreference.TAMIL) "ஒட்டுக (Paste)" else "Paste")
+                                Text(
+                                    text = if (currentLanguage == LanguagePreference.TAMIL) "ஒட்டுக (Paste)" else "Paste",
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = DeepIndigoSlatePrimary)
+                                )
                             }
                         }
 
@@ -200,7 +204,12 @@ fun ScamCheckerScreen(
                                 }
                             },
                             enabled = inputText.isNotBlank() && !isAnalyzing,
-                            colors = ButtonDefaults.buttonColors(containerColor = DeepIndigoSlatePrimary),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = DeepIndigoSlatePrimary,
+                                contentColor = Color.White,
+                                disabledContainerColor = DeepIndigoSlatePrimary.copy(alpha = 0.4f),
+                                disabledContentColor = Color.White.copy(alpha = 0.6f)
+                            ),
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -214,10 +223,10 @@ fun ScamCheckerScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Icon(Icons.Default.Shield, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Icon(Icons.Default.Shield, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
                                     Text(
                                         text = if (currentLanguage == LanguagePreference.TAMIL) "அச்சுறுத்தலை ஆய்வு செய்க" else "Analyze Threat Indicators",
-                                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, color = Color.White)
                                     )
                                 }
                             }

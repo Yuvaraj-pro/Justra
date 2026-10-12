@@ -13,15 +13,14 @@ plugins {
 
 android {
   namespace = "com.justra.app"
-  compileSdk = 35
+  compileSdk = 36
 
   defaultConfig {
     applicationId = "com.justra.app"
     minSdk = 26
-    targetSdk = 35
-    versionCode = 1
-    versionName = "1.0"
-
+    targetSdk = 36
+    versionCode = 9
+    versionName = "2.1.6"
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
@@ -130,6 +129,7 @@ dependencies {
   implementation(libs.androidx.lifecycle.viewmodel.compose)
   implementation(libs.androidx.navigation.compose)
   implementation(libs.androidx.biometric)
+  implementation("androidx.browser:browser:1.8.0")
   implementation("androidx.security:security-crypto:1.1.0-alpha06")
   implementation(libs.androidx.room.ktx)
   implementation(libs.androidx.room.runtime)

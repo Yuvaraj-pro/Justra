@@ -51,18 +51,19 @@ fun DivorceMutualConsentScreen(
         ) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SovereignNavy),
+                colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                border = BorderStroke(1.dp, CardBorderStroke),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (isTa) "🕊️ 6 மாதங்கள் காத்திருப்பு காலம் தள்ளுபடி சலுகை" else "🕊️ Mandatory Separation & Cooling-off Waiver",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Serif)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy, fontFamily = FontFamily.Serif)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (isTa) "1 ஆண்டு பிரிந்து வாழ்ந்திருக்க வேண்டும். உச்ச நீதிமன்ற உத்தரவுப்படி 6 மாத காத்திருப்பு காலத்தை தள்ளுபடி செய்யலாம்." else "Must be living separately for 1+ years. Supreme Court (Amardeep Singh case) allows waiving 6-month cooling period.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                     )
                 }
             }

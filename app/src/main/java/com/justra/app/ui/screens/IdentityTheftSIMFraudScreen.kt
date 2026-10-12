@@ -51,18 +51,19 @@ fun IdentityTheftSIMFraudScreen(
         ) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SovereignNavy),
+                colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                border = BorderStroke(1.dp, CardBorderStroke),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (isTa) "📱 உங்கள் பெயரில் உள்ள போலி SIM கார்டுகளை உடனடியாக முடக்குக" else "📱 Detect & Block Fake SIM Cards Issued On Your Aadhaar",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Serif)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy, fontFamily = FontFamily.Serif)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (isTa) "TAFCOP போர்ட்டலில் உங்கள் மொபைல் எண்ணை சரிபார்த்து அறியாத போலி எண்களை உடனடியாக துண்டிக்கலாம்." else "Check active mobile connections linked to your Identity on TAFCOP and raise immediate disconnection request.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                     )
                 }
             }

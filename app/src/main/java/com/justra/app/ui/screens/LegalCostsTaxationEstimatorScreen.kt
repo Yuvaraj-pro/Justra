@@ -51,18 +51,19 @@ fun LegalCostsTaxationEstimatorScreen(
         ) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SovereignNavy),
+                colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                border = BorderStroke(1.dp, CardBorderStroke),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (isTa) "⚖️ வழக்கு வெற்றி பெற்றால் எதிர்தரப்பிடம் இருந்து செலவுத் தொகையை திரும்பப் பெறலாம்" else "⚖️ Statutory Award of Costs to Prevailing Party (Sec 35 CPC)",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Serif)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy, fontFamily = FontFamily.Serif)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (isTa) "சிவில் வழக்கு வெற்றி பெற்றால் நீதிமன்றம் எதிர்தரப்பை உங்கள் வழக்கு செலவை வழங்க உத்தரவிடலாம்." else "Courts possess statutory power to order defeated party to pay actual litigation costs under Sec 35 CPC.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                     )
                 }
             }

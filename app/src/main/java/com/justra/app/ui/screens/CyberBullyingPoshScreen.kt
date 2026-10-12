@@ -52,18 +52,19 @@ fun CyberBullyingPoshScreen(
         ) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SovereignNavy),
+                colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                border = BorderStroke(1.dp, CardBorderStroke),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (isTa) "🛡️ POSH சட்டம் 2013 & BNS பிரிவு 78 சைபர் ஸ்டாக்கிங்" else "🛡️ POSH Act 2013 & BNS Sec 78 Cyber Stalking",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Serif)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy, fontFamily = FontFamily.Serif)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (isTa) "பணியிடத்தில் 10+ ஊழியர்கள் இருந்தால் ICC கவுன்சில் அமைப்பது சட்டப்பூர்வ கடமை. ஆன்லைன் மிரட்டல் மீது BNS 78 பாயும்." else "Mandatory Internal Complaints Committee (ICC) for employers with 10+ staff. Cyber stalking carries up to 3 yrs under BNS 78.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                     )
                 }
             }

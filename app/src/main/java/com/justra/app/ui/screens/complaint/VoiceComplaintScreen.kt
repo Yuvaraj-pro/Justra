@@ -83,7 +83,9 @@ fun VoiceComplaintScreen(
     val startVoiceInput = {
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ta-IN") // Default Tamil (Accepts English too)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-IN")
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en-US")
+            putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, "en-IN")
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
         }
         speechRecognizer?.startListening(intent)
@@ -121,13 +123,13 @@ fun VoiceComplaintScreen(
             }
             Column {
                 Text(
-                    text = "குரல் வழி புகார் பதிவு (Voice Grievance)",
+                    text = "Voice Grievance Intake",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = SovereignNavy
                 )
                 Text(
-                    text = "உங்கள் பிரச்சனையை தமிழில் அல்லது ஆங்கிலத்தில் பேசுங்கள்.",
+                    text = "Describe your legal issue in English or Tanglish.",
                     fontSize = 14.sp,
                     color = TextSecondaryDark,
                     modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
@@ -145,7 +147,7 @@ fun VoiceComplaintScreen(
                 .background(SandstoneCard, RoundedCornerShape(12.dp)),
             placeholder = {
                 Text(
-                    text = if (isListening) "நீங்கள் பேசுவது இங்கே தட்டச்சாகிறது..." else "மைக் பட்டனை அழுத்திப் பேசவும் அல்லது இங்கு டைப் செய்யவும்...",
+                    text = if (isListening) "Listening to your voice live..." else "Tap Speak or type your legal problem in English...",
                     color = TextSecondaryDark
                 )
             },
@@ -168,28 +170,34 @@ fun VoiceComplaintScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Mic Record Button (Terracotta Accent)
-            Button(
+            // Mic Record Button (Light Container Background)
+            OutlinedButton(
                 onClick = { if (isListening) stopVoiceInput() else startVoiceInput() },
-                colors = ButtonDefaults.buttonColors(containerColor = if (isListening) AlertCrimson else AccentTerracotta),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = if (isListening) AlertCrimson else TerracottaBadgeContainer,
+                    contentColor = if (isListening) TextOnAlertCrimson else AccentTerracotta
+                ),
+                border = androidx.compose.foundation.BorderStroke(1.5.dp, if (isListening) AlertCrimson else AccentTerracotta),
                 shape = RoundedCornerShape(10.dp),
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
+                    .height(50.dp)
             ) {
                 Icon(
                     imageVector = if (isListening) Icons.Default.Stop else Icons.Default.Mic,
                     contentDescription = "Voice",
-                    tint = if (isListening) TextOnAlertCrimson else androidx.compose.ui.graphics.Color.White
+                    tint = if (isListening) TextOnAlertCrimson else AccentTerracotta
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = if (isListening) "நிறுத்துக" else "பேசவும்",
-                    color = if (isListening) TextOnAlertCrimson else androidx.compose.ui.graphics.Color.White,
+                    text = if (isListening) "Stop Recording" else "Speak / Record",
+                    color = if (isListening) TextOnAlertCrimson else AccentTerracotta,
                     fontWeight = FontWeight.Bold
                 )
             }
 
-            // Confirm & Generate Button (Deep Navy)
-            Button(
+            // Confirm & Generate Button (Light Soft Navy Container Background)
+            OutlinedButton(
                 onClick = {
                     if (transcribedText.isNotBlank()) {
                         isProcessing = true
@@ -211,16 +219,22 @@ fun VoiceComplaintScreen(
                     }
                 },
                 enabled = transcribedText.isNotBlank() && !isProcessing,
-                colors = ButtonDefaults.buttonColors(containerColor = SovereignNavy),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = SoftNavyContainer,
+                    contentColor = SovereignNavy
+                ),
+                border = androidx.compose.foundation.BorderStroke(1.5.dp, SovereignNavy),
                 shape = RoundedCornerShape(10.dp),
-                modifier = Modifier.weight(1.3f)
+                modifier = Modifier
+                    .weight(1.3f)
+                    .height(50.dp)
             ) {
                 if (isProcessing) {
-                    CircularProgressIndicator(color = androidx.compose.ui.graphics.Color.White, modifier = Modifier.size(20.dp))
+                    CircularProgressIndicator(color = SovereignNavy, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                 } else {
-                    Icon(imageVector = Icons.Default.CheckCircle, contentDescription = "Submit", tint = androidx.compose.ui.graphics.Color.White)
+                    Icon(imageVector = Icons.Default.CheckCircle, contentDescription = "Submit", tint = SovereignNavy)
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("சட்டத்தை அறி & புகார் செய்", color = androidx.compose.ui.graphics.Color.White, fontSize = 13.sp)
+                    Text("Analyze Law & Register Grievance", color = SovereignNavy, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

@@ -1,12 +1,18 @@
 package com.justra.app.ui.components
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,10 +41,12 @@ import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderShared
 import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Shield
@@ -48,29 +56,31 @@ import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
+import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -78,11 +88,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -91,19 +98,44 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.justra.app.domain.model.LanguagePreference
-import com.justra.app.domain.model.RiskLevel
+import com.justra.app.domain.model.UserRole
+import com.justra.app.ui.theme.AccentTerracotta
+import com.justra.app.ui.theme.AlertCrimson
+import com.justra.app.ui.theme.CardBorderStroke
 import com.justra.app.ui.theme.DeepIndigoSlatePrimary
 import com.justra.app.ui.theme.HennaRedAlertContainer
 import com.justra.app.ui.theme.HennaRedAlertText
 import com.justra.app.ui.theme.PaleSandstoneVariant
 import com.justra.app.ui.theme.PrimaryContainerSlate
-import com.justra.app.ui.theme.SageGreenSuccessContainer
-import com.justra.app.ui.theme.SageGreenSuccessText
 import com.justra.app.ui.theme.SaffronAmberWarningContainer
 import com.justra.app.ui.theme.SaffronAmberWarningText
+import com.justra.app.ui.theme.SageGreenSuccessContainer
+import com.justra.app.ui.theme.SageGreenSuccessText
+import com.justra.app.ui.theme.SandstoneCard
+import com.justra.app.ui.theme.SovereignNavy
 import com.justra.app.ui.theme.TerracottaAccentSecondary
+import com.justra.app.ui.theme.TextPrimaryDark
+import com.justra.app.ui.theme.TextSecondaryDark
+import com.justra.app.ui.theme.VerifiedSageGreen
+import com.justra.app.ui.theme.WarmCanvasBg
 import com.justra.app.ui.theme.WarmIvorySurface
+import com.justra.app.ui.theme.nyayaOutlinedTextFieldColors
 import com.justra.app.util.BilingualStrings
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Badge
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import com.justra.app.domain.model.RiskLevel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,7 +147,7 @@ fun JustraTopBar(
     onBackClick: (() -> Unit)? = null,
     unreadNotifications: Int = 0,
     onNotificationClick: (() -> Unit)? = null,
-    onLockClick: (() -> Unit)? = null,
+    onSettingsClick: (() -> Unit)? = null,
     onMenuNavigate: ((route: String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
@@ -232,15 +264,15 @@ fun JustraTopBar(
                 }
             }
 
-            // Lock Vault Button
-            if (onLockClick != null) {
+            // Settings Button (replaces duplicate lock icons)
+            if (onSettingsClick != null) {
                 IconButton(
-                    onClick = onLockClick,
-                    modifier = Modifier.testTag("top_bar_lock_button")
+                    onClick = onSettingsClick,
+                    modifier = Modifier.testTag("top_bar_settings_button")
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Lock,
-                        contentDescription = "Lock Application",
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Settings",
                         tint = DeepIndigoSlatePrimary
                     )
                 }
@@ -517,19 +549,6 @@ fun JustraTopBar(
                     }
                 }
             }
-
-            if (onLockClick != null) {
-                IconButton(
-                    onClick = onLockClick,
-                    modifier = Modifier.testTag("lock_app_button")
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Lock,
-                        contentDescription = "Lock App",
-                        tint = DeepIndigoSlatePrimary
-                    )
-                }
-            }
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = WarmIvorySurface
@@ -547,7 +566,7 @@ fun NyayaTopBar(
     onBackClick: (() -> Unit)? = null,
     unreadNotifications: Int = 0,
     onNotificationClick: (() -> Unit)? = null,
-    onLockClick: (() -> Unit)? = null,
+    onSettingsClick: (() -> Unit)? = null,
     onMenuNavigate: ((route: String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
@@ -559,7 +578,7 @@ fun NyayaTopBar(
         onBackClick = onBackClick,
         unreadNotifications = unreadNotifications,
         onNotificationClick = onNotificationClick,
-        onLockClick = onLockClick,
+        onSettingsClick = onSettingsClick,
         onMenuNavigate = onMenuNavigate,
         modifier = modifier
     )
@@ -984,6 +1003,115 @@ fun NotificationCenterDialog(
 }
 
 @Composable
+fun ConnectivityBanner(
+    isOnline: Boolean,
+    currentLanguage: LanguagePreference,
+    onRetry: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
+) {
+    if (isOnline) return
+    
+    val isTa = currentLanguage == LanguagePreference.TAMIL
+    
+    AnimatedVisibility(
+        visible = !isOnline,
+        enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
+        exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
+    ) {
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = HennaRedAlertContainer,
+            border = androidx.compose.foundation.BorderStroke(1.dp, HennaRedAlertText.copy(alpha = 0.3f)),
+            modifier = modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.CloudOff, contentDescription = null, tint = HennaRedAlertText, modifier = Modifier.size(20.dp))
+                    Column {
+                        Text(
+                            text = if (isTa) "ஆஃப்லைன் பயன்முறை (Offline Mode)" else "Offline Mode Active",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = HennaRedAlertText
+                            )
+                        )
+                        Text(
+                            text = if (isTa) "தரவு இணைப்பு இல்லை. உள்ளே 존재하는 ஆவணங்களையும் மட்டும் அணுகலாம்." else "No internet connection. Local documents accessible only.",
+                            style = MaterialTheme.typography.bodySmall.copy(color = HennaRedAlertText)
+                        )
+                    }
+                }
+                if (onRetry != null) {
+                    OutlinedButton(
+                        onClick = onRetry,
+                        border = BorderStroke(1.dp, HennaRedAlertText),
+                        modifier = Modifier.testTag("connectivity_retry_btn")
+                    ) {
+                        Text(if (isTa) "மீண்டும் முயற்சி" else "Retry", color = HennaRedAlertText)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun OnlineStateObserver(
+    currentLanguage: LanguagePreference,
+    onStateChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    var isOnline by remember { mutableStateOf(true) }
+    
+    DisposableEffect(Unit) {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+        val callback = object : android.net.ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: android.net.Network) {
+                isOnline = true
+                onStateChange(true)
+            }
+            
+            override fun onLost(network: android.net.Network) {
+                isOnline = false
+                onStateChange(false)
+            }
+        }
+        
+        val networkRequest = android.net.NetworkRequest.Builder()
+            .addCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build()
+        
+        connectivityManager.registerNetworkCallback(networkRequest, callback)
+        
+        // Initial check
+        val activeNetwork = connectivityManager.activeNetwork
+        if (activeNetwork != null) {
+            val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
+            isOnline = capabilities?.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+        } else {
+            isOnline = false
+        }
+        onStateChange(isOnline)
+        
+        onDispose {
+            connectivityManager.unregisterNetworkCallback(callback)
+        }
+    }
+    
+    // Return empty - this is an observer only
+    Box(modifier = Modifier)
+}
+
+@Composable
 fun RoleSelectionCard(
     role: com.justra.app.domain.model.UserRole,
     isSelected: Boolean,
@@ -1058,4 +1186,120 @@ fun RoleSelectionCard(
         }
     }
 }
+
+enum class GovernmentSource(
+    val title: String,
+    val url: String
+) {
+    CENTRAL_ACTS(
+        title = "Source: Ministry of Law and Justice (indiacode.nic.in)",
+        url = "https://www.indiacode.nic.in"
+    ),
+    CONSUMER_PROTECTION(
+        title = "Source: Department of Consumer Affairs (consumerhelpline.gov.in)",
+        url = "https://consumerhelpline.gov.in"
+    ),
+    CYBER_FRAUD(
+        title = "Source: Indian Cyber Crime Coordination Centre (cybercrime.gov.in)",
+        url = "https://cybercrime.gov.in"
+    ),
+    COURT_PROCESSES(
+        title = "Source: eCourts Services, Supreme Court of India (ecourts.gov.in)",
+        url = "https://ecourts.gov.in"
+    ),
+    LABOUR_EMPLOYMENT(
+        title = "Source: Ministry of Labour and Employment (labour.gov.in)",
+        url = "https://labour.gov.in"
+    )
+}
+
+@Composable
+fun GovernmentSourceBadge(
+    source: GovernmentSource,
+    modifier: Modifier = Modifier,
+    onSnackbarMessage: ((String) -> Unit)? = null
+) {
+    val context = LocalContext.current
+    Surface(
+        shape = RoundedCornerShape(6.dp),
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+        modifier = modifier
+            .clip(RoundedCornerShape(6.dp))
+            .clickable {
+                com.justra.app.utils.ActionUtils.openWebUrl(context, source.url, onSnackbarMessage)
+            }
+            .testTag("gov_source_badge_${source.name.lowercase()}")
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.OpenInBrowser,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(12.dp)
+            )
+            Text(
+                text = source.title,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            )
+        }
+    }
+}
+
+@Composable
+fun NonGovernmentDisclaimerCard(
+    modifier: Modifier = Modifier
+) {
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag("non_government_disclaimer_card")
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(
+                    text = "Government Information & Non-Affiliation Disclaimer:",
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+            }
+            Text(
+                text = "Justra is an independent legal-technology application developed to assist citizens with statutory awareness and legal dispute preparation. Justra does not represent, endorse, or hold any official partnership with the Government of India or any state government entity. All statutory provisions, acts, and procedural references are derived directly from publicly available government databases (including indiacode.nic.in, consumerhelpline.gov.in, and cybercrime.gov.in).",
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontSize = 11.sp,
+                    lineHeight = 15.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            )
+        }
+    }
+}
+
 

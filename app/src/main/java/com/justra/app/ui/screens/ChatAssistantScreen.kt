@@ -67,6 +67,7 @@ import com.justra.app.ui.theme.PaleSandstoneVariant
 import com.justra.app.ui.theme.PrimaryContainerSlate
 import com.justra.app.ui.theme.SageGreenSuccessContainer
 import com.justra.app.ui.theme.SageGreenSuccessText
+import com.justra.app.ui.theme.SovereignNavy
 import com.justra.app.ui.theme.TerracottaAccentSecondary
 import com.justra.app.ui.theme.TerracottaContainer
 import com.justra.app.ui.theme.WarmIvorySurface
@@ -86,6 +87,7 @@ fun ChatAssistantScreen(
     recordingState: AudioRecordingState,
     audioWaveforms: List<Float>,
     initialPrompt: String?,
+    liveTranscript: String = "",
     onSendMessage: (String) -> Unit,
     onStartRecording: () -> Unit,
     onStopRecording: () -> Unit,
@@ -97,6 +99,52 @@ fun ChatAssistantScreen(
 ) {
     var textInput by remember { mutableStateOf(initialPrompt ?: "") }
     val listState = rememberLazyListState()
+
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            onStartRecording()
+        } else {
+            android.widget.Toast.makeText(
+                context,
+                if (currentLanguage == LanguagePreference.TAMIL) "குரல் பதிவு செய்ய அனுமதி தேவை" else "Microphone permission is required for voice query",
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose {
+            if (recordingState == AudioRecordingState.RECORDING) {
+                onStopRecording()
+            }
+        }
+    }
+
+    val handleMicClick = {
+        val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
+            context,
+            android.Manifest.permission.RECORD_AUDIO
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+        if (recordingState == AudioRecordingState.RECORDING) {
+            onStopRecording()
+        } else {
+            if (hasPermission) {
+                onStartRecording()
+            } else {
+                permissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+            }
+        }
+    }
+
+    LaunchedEffect(liveTranscript) {
+        if (liveTranscript.isNotBlank()) {
+            textInput = liveTranscript
+        }
+    }
 
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
@@ -131,18 +179,39 @@ fun ChatAssistantScreen(
                     .windowInsetsPadding(WindowInsets.navigationBars)
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
-                    // Interactive Canvas Recording waveform indicator if active
+                    // Inline live listening banner (no dialogue overlay)
                     AnimatedVisibility(visible = recordingState == AudioRecordingState.RECORDING) {
-                        InteractiveTamilVoiceWaveformVisualizer(
-                            isRecording = true,
-                            currentLanguage = currentLanguage,
-                            amplitudes = audioWaveforms,
-                            onStopRecording = onStopRecording,
-                            onCancelRecording = onStopRecording,
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFFFCDAD4),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(bottom = 8.dp)
-                        )
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Mic,
+                                    contentDescription = "Live STT",
+                                    tint = Color(0xFF5E130A),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = if (currentLanguage == LanguagePreference.TAMIL)
+                                        "கேட்கிறது... நேரடியாக தட்டச்சாகிறது..."
+                                    else
+                                        "Listening... Transcribing live into chat box...",
+                                    style = TextStyle(
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF5E130A)
+                                    )
+                                )
+                            }
+                        }
                     }
 
                     Row(
@@ -150,35 +219,19 @@ fun ChatAssistantScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        // Mic Button / Stop Button
-                        if (recordingState == AudioRecordingState.RECORDING) {
-                            IconButton(
-                                onClick = onStopRecording,
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .background(TerracottaAccentSecondary)
-                                    .testTag("chat_stop_recording_button")
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Stop,
-                                    contentDescription = "Stop",
-                                    tint = Color.White
-                                )
-                            }
-                        } else {
-                            IconButton(
-                                onClick = onStartRecording,
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .background(PaleSandstoneVariant)
-                                    .testTag("chat_mic_record_button")
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Mic,
-                                    contentDescription = "Record Voice",
-                                    tint = DeepIndigoSlatePrimary
-                                )
-                            }
+                        // Mic Button / Stop Button with Gemini Live STT Permission Handling
+                        IconButton(
+                            onClick = handleMicClick,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(if (recordingState == AudioRecordingState.RECORDING) TerracottaAccentSecondary else SovereignNavy)
+                                .testTag(if (recordingState == AudioRecordingState.RECORDING) "chat_stop_recording_button" else "chat_mic_record_button")
+                        ) {
+                            Icon(
+                                imageVector = if (recordingState == AudioRecordingState.RECORDING) Icons.Default.Stop else Icons.Default.Mic,
+                                contentDescription = "Record Voice",
+                                tint = Color.White
+                            )
                         }
 
                         OutlinedTextField(
@@ -365,10 +418,10 @@ private fun ChatBubble(
                     }
                 }
 
-                Text(
+                com.justra.app.ui.components.FormattedMarkdownText(
                     text = message.messageContent,
+                    textColor = textColor,
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = textColor,
                         lineHeight = 22.sp
                     )
                 )

@@ -26,8 +26,10 @@ import com.justra.app.domain.model.LanguagePreference
 import com.justra.app.domain.model.UserRole
 import com.justra.app.ui.components.AppBottomNavBar
 import com.justra.app.ui.components.CircularReadinessGauge
+import com.justra.app.ui.components.ConnectivityBanner
 import com.justra.app.ui.components.EmergencyHelplineBar
 import com.justra.app.ui.components.NyayaTopBar
+import com.justra.app.ui.components.OnlineStateObserver
 import com.justra.app.ui.theme.*
 import com.justra.app.util.BilingualStrings
 import kotlinx.coroutines.flow.SharedFlow
@@ -43,7 +45,6 @@ fun HomeScreen(
     documentFeedbackFlow: SharedFlow<String>? = null,
     onGenerateLegalDocument: ((title: String, category: DisputeCategory, onComplete: (String) -> Unit) -> Unit)? = null,
     onToggleLanguage: () -> Unit,
-    onLockApp: () -> Unit,
     onSwitchRole: (UserRole) -> Unit = {},
     onMarkNotificationRead: (String) -> Unit = {},
     onMarkAllNotificationsRead: () -> Unit = {},
@@ -63,7 +64,11 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     val isTa = currentLanguage == LanguagePreference.TAMIL
-
+    
+    // Connectivity State
+    var isOnline by remember { mutableStateOf(true) }
+    OnlineStateObserver(currentLanguage = currentLanguage, onStateChange = { isOnline = it })
+    
     Scaffold(
         topBar = {
             NyayaTopBar(
@@ -72,7 +77,7 @@ fun HomeScreen(
                 unreadNotifications = unreadNotificationsCount,
                 onToggleLanguage = onToggleLanguage,
                 onNotificationClick = { onNavigateToRoute?.invoke("notifications_center") },
-                onLockClick = onLockApp
+                onSettingsClick = { onNavigateToRoute?.invoke("settings") }
             )
         },
         bottomBar = {
@@ -93,12 +98,22 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(top = 16.dp, bottom = 80.dp)
         ) {
+            // Connectivity Banner (shows when offline)
+            item {
+                ConnectivityBanner(
+                    isOnline = isOnline,
+                    currentLanguage = currentLanguage,
+                    onRetry = { /* Trigger refresh */ }
+                )
+            }
+
             // Section 1: Hero Identity Banner
             item {
                 Card(
                     shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = SovereignNavy),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+                    colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                    border = BorderStroke(1.dp, CardBorderStroke),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(18.dp)) {
@@ -113,14 +128,14 @@ fun HomeScreen(
                                     style = MaterialTheme.typography.titleLarge.copy(
                                         fontFamily = FontFamily.Serif,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.White
+                                        color = SovereignNavy
                                     )
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = if (isTa) "இந்திய சட்ட பாதுகாப்பு | தமிழ் & ஆங்கிலம்" else "Structured Judicial Dossiers & Voice Assistant",
                                     style = MaterialTheme.typography.bodySmall.copy(
-                                        color = Color.White.copy(alpha = 0.8f)
+                                        color = TextSecondaryDark
                                     )
                                 )
                             }
@@ -147,7 +162,10 @@ fun HomeScreen(
                         ) {
                             Button(
                                 onClick = onNavigateToVoice,
-                                colors = ButtonDefaults.buttonColors(containerColor = AccentTerracotta),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = AccentTerracotta,
+                                    contentColor = Color.White
+                                ),
                                 shape = RoundedCornerShape(10.dp),
                                 modifier = Modifier.weight(1f)
                             ) {
@@ -161,14 +179,18 @@ fun HomeScreen(
                             OutlinedButton(
                                 onClick = { onNavigateToRoute?.invoke("my_cases_hub") },
                                 shape = RoundedCornerShape(10.dp),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)),
+                                border = BorderStroke(1.5.dp, SovereignNavy),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    containerColor = Color.Transparent,
+                                    contentColor = SovereignNavy
+                                ),
                                 modifier = Modifier.weight(1f)
                             ) {
-                                Icon(Icons.Default.Folder, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Default.Folder, contentDescription = null, tint = SovereignNavy, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = if (isTa) "எனது வழக்குகள்" else "My Cases",
-                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = Color.White)
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy)
                                 )
                             }
                         }
@@ -301,15 +323,20 @@ fun HomeScreen(
                             Spacer(modifier = Modifier.height(12.dp))
                             Button(
                                 onClick = { onNavigateToRoute?.invoke("my_cases_hub") },
-                                colors = ButtonDefaults.buttonColors(containerColor = SovereignNavy),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = SovereignNavy,
+                                    contentColor = Color.White
+                                ),
+                                shape = RoundedCornerShape(10.dp),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
                                     text = if (isTa) "எனது வழக்குகள் & 5 கருவிகள் காண" else "Open My Cases & 5 Legal Tools",
-                                    color = Color.White
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                             }
                         }
                     }

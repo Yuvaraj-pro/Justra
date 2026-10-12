@@ -51,18 +51,19 @@ fun CyberBankFreezeUnfreezeScreen(
         ) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SovereignNavy),
+                colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                border = BorderStroke(1.dp, CardBorderStroke),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (isTa) "🏦 தவறாக முடக்கப்பட்ட வங்கி கணக்கு விடுவிப்பு வரைவு" else "🏦 De-freezing Bank Account Lien Notice",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Serif)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy, fontFamily = FontFamily.Serif)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (isTa) "சந்தேகத்திற்குரிய தொகையை மட்டும் முடக்க வேண்டும்; முழு கணக்கையும் முடக்குவது சட்டவிரோதமானது." else "High Courts mandate that only disputed amounts should be frozen under Sec 102 BNSS, not entire bank accounts.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                     )
                 }
             }

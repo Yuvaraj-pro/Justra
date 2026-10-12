@@ -87,6 +87,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.justra.app.domain.model.LanguagePreference
 import com.justra.app.domain.model.UserRole
+import com.justra.app.ui.components.NonGovernmentDisclaimerCard
 import com.justra.app.ui.theme.DeepHennaAlertContainer
 import com.justra.app.ui.theme.CardBorderStroke
 import com.justra.app.ui.theme.DeepImperialNavy
@@ -127,7 +128,47 @@ fun VoiceComplaintRegistrationScreen(
 
     var isEditingGeneratedDraft by remember { mutableStateOf(false) }
     var userEditedDraft by remember { mutableStateOf("") }
-    var activeTab by remember { mutableStateOf(0) }
+    val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            viewModel.startVoiceIntake()
+        } else {
+            Toast.makeText(
+                context,
+                if (isTa) "குரல் பதிவு செய்ய அனுமதி தேவை (Microphone permission required)" else "RECORD_AUDIO permission is required for voice intake",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose {
+            try {
+                viewModel.voiceManager.stopListening()
+                viewModel.audioRecorderHelper.stopRecording()
+            } catch (e: Exception) {
+                // Ignore disposal errors safely
+            }
+        }
+    }
+
+    val toggleRecording = {
+        val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
+            context,
+            android.Manifest.permission.RECORD_AUDIO
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+        if (uiState is ComplaintVoiceUiState.Recording) {
+            viewModel.stopVoiceIntake()
+        } else {
+            if (hasPermission) {
+                viewModel.startVoiceIntake()
+            } else {
+                permissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+            }
+        }
+    }
 
     val infiniteTransition = rememberInfiniteTransition(label = "mic_pulse")
     val pulseScale by infiniteTransition.animateFloat(
@@ -219,365 +260,203 @@ fun VoiceComplaintRegistrationScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            TabRow(
-                selectedTabIndex = activeTab,
-                containerColor = SandstoneCard,
-                contentColor = SovereignNavy,
+            LazyColumn(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .border(1.dp, CardBorderStroke, RoundedCornerShape(12.dp))
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Tab(
-                    selected = activeTab == 0,
-                    onClick = { activeTab = 0 },
-                    text = {
-                        Text(
-                            text = if (isTa) "குரல்வழி சட்டப் பகுப்பாய்வு" else "Voice AI Intake",
-                            fontWeight = if (activeTab == 0) FontWeight.Bold else FontWeight.Medium,
-                            fontSize = 13.sp
-                        )
-                    }
-                )
-                Tab(
-                    selected = activeTab == 1,
-                    onClick = { activeTab = 1 },
-                    text = {
-                        Text(
-                            text = if (isTa) "முழு வழக்குப் பதிவு" else "Full Case Filing",
-                            fontWeight = if (activeTab == 1) FontWeight.Bold else FontWeight.Medium,
-                            fontSize = 13.sp
-                        )
-                    }
-                )
-            }
-
-            if (activeTab == 0) {
-                VoiceComplaintScreen(
-                    onNavigateBack = null,
-                    onGenerateComplaint = { transcript, onResult ->
-                        viewModel.analyzeVoiceGrievanceDynamic(transcript, onResult)
-                    }
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-            // Introductory Guidance Card
-            item {
-                Spacer(modifier = Modifier.height(4.dp))
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = SandstoneSurface),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, ParchmentOutline),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier.padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                // Introductory Guidance Card
+                item {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = SandstoneSurface),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, ParchmentOutline),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(PrimaryNavyContainer),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Policy,
-                                contentDescription = null,
-                                tint = DeepImperialNavy,
-                                modifier = Modifier.size(22.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column {
-                            Text(
-                                text = if (isTa) "குரல்வழி சட்ட மனு முறைமை" else "Two-Stage Voice Intake Pipeline",
-                                style = MaterialTheme.typography.titleSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = DeepImperialNavy
-                                )
-                            )
-                            Text(
-                                text = if (isTa) {
-                                    "1. மைக்ரோஃபோனை அழுத்திப் பேசுங்கள் -> 2. உரையைச் சரிபார்க்கவும் -> 3. சட்டம் சார்ந்த அதிகாரப்பூர்வ மனுவைப் பெறுங்கள்."
-                                } else {
-                                    "1. Speak grievance facts -> 2. Validate live transcript -> 3. Generate formal Indian statutory notice."
-                                },
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    fontSize = 11.sp,
-                                    color = OnSandstoneSurfaceVariant
-                                )
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Legal Persona / Role Selector Panel
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = SandstoneSurface),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, ParchmentOutline),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("voice_role_selector_card")
-                ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.padding(14.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = if (isTa) "சட்ட ஆளுமை நிலை (Legal Persona):" else "Active Legal Persona:",
-                                style = MaterialTheme.typography.titleSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = DeepImperialNavy
-                                )
-                            )
-                            Surface(
-                                shape = RoundedCornerShape(6.dp),
-                                color = PrimaryNavyContainer
-                            ) {
-                                Text(
-                                    text = if (isTa) currentRole.badgeTa else currentRole.badgeEn,
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        color = DeepImperialNavy,
-                                        fontSize = 10.sp
-                                    ),
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                )
-                            }
-                        }
-
-                        Text(
-                            text = if (isTa) currentRole.subtitleTa else currentRole.subtitleEn,
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                fontSize = 11.sp,
-                                color = OnSandstoneSurfaceVariant
-                            )
-                        )
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        // Persona Choice Chips
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            UserRole.values().forEach { role ->
-                                val isSelected = currentRole == role
-                                Surface(
-                                    shape = RoundedCornerShape(10.dp),
-                                    color = if (isSelected) DeepImperialNavy else Color.White,
-                                    border = androidx.compose.foundation.BorderStroke(
-                                        1.dp,
-                                        if (isSelected) DeepImperialNavy else ParchmentOutline
-                                    ),
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clickable { viewModel.setRole(role) }
-                                        .testTag("voice_role_chip_${role.id}")
-                                ) {
-                                    Column(
-                                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 2.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.Center
-                                    ) {
-                                        Text(
-                                            text = when (role) {
-                                                UserRole.CITIZEN -> "🛡️"
-                                                UserRole.LEGAL_COUNSEL -> "⚖️"
-                                                UserRole.MSME_BUSINESS -> "🏢"
-                                                UserRole.CYBER_FRAUD_VICTIM -> "🚨"
-                                            },
-                                            fontSize = 14.sp,
-                                            textAlign = TextAlign.Center
-                                        )
-                                        Spacer(modifier = Modifier.height(2.dp))
-                                        Text(
-                                            text = when (role) {
-                                                UserRole.CITIZEN -> if (isTa) "குடிமகன்" else "Citizen"
-                                                UserRole.LEGAL_COUNSEL -> if (isTa) "வழக்கறிஞர்" else "Counsel"
-                                                UserRole.MSME_BUSINESS -> if (isTa) "MSME" else "MSME"
-                                                UserRole.CYBER_FRAUD_VICTIM -> if (isTa) "சைபர்" else "Cyber"
-                                            },
-                                            style = MaterialTheme.typography.labelSmall.copy(
-                                                fontSize = 10.sp,
-                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                                color = if (isSelected) Color.White else DeepImperialNavy
-                                            ),
-                                            textAlign = TextAlign.Center,
-                                            maxLines = 1
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Voice Control & Live Waveform Panel
-            item {
-                Card(
-                    shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, ParchmentOutline),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        val isRecording = uiState is ComplaintVoiceUiState.Recording
-
-                        Text(
-                            text = if (isRecording) {
-                                if (isTa) "பேசுங்கள், உங்கள் குரல் பதிவாகிறது..." else "Listening... Describe your legal problem"
-                            } else {
-                                if (isTa) "தொடங்க மைக்ரோஃபோனை அழுத்தவும்" else "Tap microphone to record statement"
-                            },
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = if (isRecording) WarmTerracotta else DeepImperialNavy
-                            )
-                        )
-
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        // Pulsating Mic Button
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.size(80.dp)
-                        ) {
-                            if (isRecording) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(80.dp)
-                                        .scale(pulseScale)
-                                        .clip(CircleShape)
-                                        .background(WarmTerracotta.copy(alpha = 0.22f))
-                                )
-                            }
-
-                            Surface(
-                                shape = CircleShape,
-                                color = if (isRecording) WarmTerracotta else DeepImperialNavy,
-                                shadowElevation = 4.dp,
+                            Box(
                                 modifier = Modifier
-                                    .size(62.dp)
+                                    .size(40.dp)
                                     .clip(CircleShape)
-                                    .clickable {
-                                        if (isRecording) {
-                                            viewModel.stopVoiceIntake()
-                                        } else {
-                                            viewModel.startVoiceIntake()
-                                        }
-                                    }
-                                    .testTag("voice_complaint_mic_button")
+                                    .background(PrimaryNavyContainer),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        imageVector = if (isRecording) Icons.Default.MicOff else Icons.Default.Mic,
-                                        contentDescription = "Microphone Toggle",
-                                        tint = OnImperialNavy,
-                                        modifier = Modifier.size(28.dp)
-                                    )
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        // Real-Time Hardware Waveform Visualizer Canvas
-                        LiveWaveformCanvas(
-                            amplitudes = waveforms,
-                            isRecording = isRecording,
-                            height = 64.dp
-                        )
-                    }
-                }
-            }
-
-            // Live Editable Transcript Panel
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = SandstoneSurface),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, ParchmentOutline),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = if (isTa) "நேரடி உரை / சரிபார்ப்பு" else "Live Transcript & Review",
-                                style = MaterialTheme.typography.titleSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = DeepImperialNavy
+                                Icon(
+                                    imageVector = Icons.Default.Policy,
+                                    contentDescription = null,
+                                    tint = DeepImperialNavy,
+                                    modifier = Modifier.size(22.dp)
                                 )
-                            )
-
-                            if (transcript.isNotBlank()) {
-                                TextButton(
-                                    onClick = { viewModel.updateTranscript("") },
-                                    modifier = Modifier.testTag("voice_complaint_clear_transcript")
-                                ) {
-                                    Text(
-                                        text = if (isTa) "அழி" else "Clear",
-                                        fontSize = 11.sp,
-                                        color = WarmTerracotta
-                                    )
-                                }
                             }
-                        }
-
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        OutlinedTextField(
-                            value = transcript,
-                            onValueChange = { viewModel.updateTranscript(it) },
-                            placeholder = {
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = if (isTa) "சட்ட மனு முறைமை" else "Statutory Legal Notice Generator",
+                                    style = MaterialTheme.typography.titleSmall.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = DeepImperialNavy
+                                    )
+                                )
                                 Text(
                                     text = if (isTa) {
-                                        "எடுத்துக்காட்டு: 'நேற்று ஒரு கடைக்காரர் எனக்கு பழுதான மடிக்கணினியை விற்றுவிட்டார். பணத்தைத் திரும்ப தர மறுக்கிறார்...'"
+                                        "1. தகவல்களைத் தட்டச்சு செய்க -> 2. மனுவை சரிபார்க்கவும் -> 3. சட்டம் சார்ந்த அதிகாரப்பூர்வ மனுவைப் பெறுங்கள்."
                                     } else {
-                                        "Example: 'I purchased a defective appliance from merchant on 12th Oct, but they refused warranty and refund of Rs 15,000...'"
+                                        "1. Enter dispute facts -> 2. Validate narrative -> 3. Generate formal Indian statutory notice."
                                     },
-                                    style = MaterialTheme.typography.bodySmall.copy(color = OnSandstoneSurfaceVariant)
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontSize = 11.sp,
+                                        color = OnSandstoneSurfaceVariant
+                                    )
                                 )
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(120.dp)
-                                .testTag("voice_complaint_transcript_input"),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = Color.White,
-                                unfocusedContainerColor = Color.White,
-                                focusedBorderColor = DeepImperialNavy,
-                                unfocusedBorderColor = ParchmentOutline,
-                                focusedTextColor = OnParchmentText,
-                                unfocusedTextColor = OnParchmentText
-                            )
-                        )
+                            }
+                        }
                     }
                 }
-            }
 
-            // Confirm & Generate Action Button
+                // Gemini Live Audio STT Microphone Card
+                item {
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (uiState is ComplaintVoiceUiState.Recording) Color(0xFFFFE8E0) else SandstoneSurface
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.5.dp,
+                            if (uiState is ComplaintVoiceUiState.Recording) WarmTerracotta else ParchmentOutline
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = if (uiState is ComplaintVoiceUiState.Recording) {
+                                    if (isTa) "நேரலை குரல் பதிவு பெறப்படுகிறது... (English / தமிழ் / Tanglish)" else "Streaming Live Audio... Speak in English, Tamil, or Tanglish"
+                                } else {
+                                    if (isTa) "குரல் மூலம் கூற நுண்ஒலியை அழுத்தவும்" else "Tap Microphone for Gemini Live STT"
+                                },
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = DeepImperialNavy,
+                                    lineHeight = 20.sp
+                                ),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 8.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            // Responsive Mic Trigger Button with Pulsing Scale Animation
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(72.dp)
+                                    .scale(if (uiState is ComplaintVoiceUiState.Recording) pulseScale else 1.0f)
+                                    .clip(CircleShape)
+                                    .background(if (uiState is ComplaintVoiceUiState.Recording) WarmTerracotta else SovereignNavy)
+                                    .clickable { toggleRecording() }
+                                    .testTag("voice_complaint_mic_button")
+                            ) {
+                                Icon(
+                                    imageVector = if (uiState is ComplaintVoiceUiState.Recording) Icons.Default.MicOff else Icons.Default.Mic,
+                                    contentDescription = "Microphone STT",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(36.dp)
+                                )
+                            }
+
+                            if (uiState is ComplaintVoiceUiState.Recording) {
+                                Spacer(modifier = Modifier.height(12.dp))
+                                LiveWaveformCanvas(
+                                    amplitudes = waveforms,
+                                    isRecording = true,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(36.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Live Editable Transcript / Text Statement Panel
+                item {
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = SandstoneSurface),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, ParchmentOutline),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = if (isTa) "பிரச்சனை விபரம் (Dispute Narrative)" else "Dispute Statement & Facts",
+                                    style = MaterialTheme.typography.titleSmall.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = DeepImperialNavy
+                                    )
+                                )
+
+                                if (transcript.isNotBlank()) {
+                                    TextButton(
+                                        onClick = { viewModel.updateTranscript("") },
+                                        modifier = Modifier.testTag("voice_complaint_clear_transcript")
+                                    ) {
+                                        Text(
+                                            text = if (isTa) "அழி" else "Clear",
+                                            fontSize = 11.sp,
+                                            color = WarmTerracotta
+                                        )
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            OutlinedTextField(
+                                value = transcript,
+                                onValueChange = { viewModel.updateTranscript(it) },
+                                placeholder = {
+                                    Text(
+                                        text = if (isTa) {
+                                            "எடுத்துக்காட்டு: 'நேற்று ஒரு கடைக்காரர் எனக்கு பழுதான பொருளை விற்றுவிட்டார். பணத்தைத் திரும்ப தர மறுக்கிறார்...'"
+                                        } else {
+                                            "Example: 'I purchased a defective appliance from the merchant on 12th Oct, but they refused warranty refund of Rs 15,000...'"
+                                        },
+                                        style = MaterialTheme.typography.bodySmall.copy(color = OnSandstoneSurfaceVariant)
+                                    )
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(140.dp)
+                                    .testTag("voice_complaint_transcript_input"),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedContainerColor = Color.White,
+                                    unfocusedContainerColor = Color.White,
+                                    focusedBorderColor = DeepImperialNavy,
+                                    unfocusedBorderColor = ParchmentOutline,
+                                    focusedTextColor = OnParchmentText,
+                                    unfocusedTextColor = OnParchmentText
+                                )
+                            )
+                        }
+                    }
+                }
+
+            // Confirm & Generate Action Button with Pure White High-Contrast Typography
             item {
                 AnimatedVisibility(
                     visible = transcript.isNotBlank() && uiState !is ComplaintVoiceUiState.Generating,
@@ -586,7 +465,10 @@ fun VoiceComplaintRegistrationScreen(
                 ) {
                     Button(
                         onClick = { viewModel.generateComplaintFromTranscript() },
-                        colors = ButtonDefaults.buttonColors(containerColor = WarmTerracotta),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = SovereignNavy,
+                            contentColor = Color.White
+                        ),
                         shape = RoundedCornerShape(14.dp),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -596,7 +478,7 @@ fun VoiceComplaintRegistrationScreen(
                         Icon(
                             imageVector = Icons.Default.Description,
                             contentDescription = null,
-                            tint = OnImperialNavy,
+                            tint = Color.White,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -604,7 +486,7 @@ fun VoiceComplaintRegistrationScreen(
                             text = if (isTa) "உறுதிசெய்து மனுவை உருவாக்குங்கள்" else "Confirm & Generate Legal Notice",
                             style = MaterialTheme.typography.titleSmall.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = OnImperialNavy
+                                color = Color.White
                             )
                         )
                     }
@@ -978,7 +860,11 @@ fun VoiceComplaintRegistrationScreen(
                                             onCaseCreated(createdCaseId)
                                         }
                                     },
-                                    colors = ButtonDefaults.buttonColors(containerColor = WarmTerracotta),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFFFFFFDBCF),
+                                        contentColor = DeepImperialNavy
+                                    ),
+                                    border = androidx.compose.foundation.BorderStroke(1.5.dp, DeepImperialNavy),
                                     modifier = Modifier
                                         .weight(1.4f)
                                         .testTag("complaint_save_active_case_button"),
@@ -987,14 +873,14 @@ fun VoiceComplaintRegistrationScreen(
                                     Icon(
                                         imageVector = Icons.Default.Policy,
                                         contentDescription = null,
-                                        tint = OnImperialNavy,
+                                        tint = DeepImperialNavy,
                                         modifier = Modifier.size(14.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text(
                                         text = if (isTa) "வழக்காகப் பதிவு செய்" else "Open Case",
                                         fontSize = 11.sp,
-                                        color = OnImperialNavy
+                                        color = DeepImperialNavy
                                     )
                                 }
                             }
@@ -1004,12 +890,14 @@ fun VoiceComplaintRegistrationScreen(
             }
 
             item {
+                NonGovernmentDisclaimerCard(modifier = Modifier.padding(vertical = 12.dp))
+            }
+            item {
                 Spacer(modifier = Modifier.height(20.dp))
             }
         }
-            }
-        }
     }
+}
 }
 @Composable
 private fun TextButton(onClick: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {

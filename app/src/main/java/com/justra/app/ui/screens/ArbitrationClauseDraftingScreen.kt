@@ -51,18 +51,19 @@ fun ArbitrationClauseDraftingScreen(
         ) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SovereignNavy),
+                colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                border = BorderStroke(1.dp, CardBorderStroke),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (isTa) "🏛️ வணிக ஒப்பந்தங்களில் 6 மாத விரைவு நடுவர் பிரிவு" else "🏛️ Fast-Track 6-Month Commercial Dispute Resolution",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Serif)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy, fontFamily = FontFamily.Serif)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (isTa) "நீதிமன்ற அலைச்சலை தவிர்க்க ஒப்பந்தங்களில் பதிவு செய்ய வேண்டிய மாதிரி நடுவர் பிரிவு." else "Incorporate Section 29B Fast-Track Arbitration provisions to settle commercial disputes within 6 months.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                     )
                 }
             }

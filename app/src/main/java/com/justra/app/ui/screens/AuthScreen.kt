@@ -1,18 +1,19 @@
 package com.justra.app.ui.screens
 
-import android.content.Context
-import android.content.ContextWrapper
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Backspace
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Pin
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,92 +21,101 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import com.justra.app.domain.model.LanguagePreference
+import com.justra.app.ui.theme.AccentTerracotta
+import com.justra.app.ui.theme.SovereignNavy
+import com.justra.app.ui.theme.nyayaOutlinedTextFieldColors
 import com.justra.app.util.BiometricAuthHelper
-import com.justra.app.util.SecurityPreferences
-import kotlinx.coroutines.delay
-
-private fun Context.findFragmentActivity(): FragmentActivity? {
-    var current = this
-    while (current is ContextWrapper) {
-        if (current is FragmentActivity) return current
-        current = current.baseContext
-    }
-    return null
-}
 
 @Composable
 fun AuthScreen(
     currentLanguage: LanguagePreference,
+    hasVaultPin: Boolean = false,
+    onVerifyPin: (String) -> Boolean = { true },
+    onSetVaultPin: (String) -> Unit = {},
     onAuthenticated: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val activity = remember(context) { context.findFragmentActivity() }
-    val secPrefs = remember(context) { SecurityPreferences.getInstance(context) }
     val isTa = currentLanguage == LanguagePreference.TAMIL
 
-    var pinState by remember { mutableStateOf("") }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-    var lockoutSeconds by remember { mutableStateOf(0) }
-    var isBiometricAvailable by remember {
-        mutableStateOf(BiometricAuthHelper.checkBiometricStatus(context) == BiometricAuthHelper.BiometricCapability.AVAILABLE)
-    }
+    val securityManager = remember(context) { com.justra.app.data.local.SecurityManager(context) }
 
-    val expectedPinLength = if (secPrefs.hasEnrolledPin()) secPrefs.getEnrolledPinLength() else 6
+    var showPinDialog by remember { mutableStateOf(false) }
+    var isCreatePinMode by remember { mutableStateOf(!hasVaultPin) }
 
-    // Lockout countdown timer loop
-    LaunchedEffect(Unit) {
-        while (true) {
-            val expiry = secPrefs.getLockoutExpiryTimestamp()
-            val now = System.currentTimeMillis()
-            if (expiry > now) {
-                val remaining = (((expiry - now) / 1000) + 1).toInt()
-                lockoutSeconds = remaining
-                errorMessage = if (isTa) 
-                    "பல முறை தவறான PIN. தயவுசெய்து $remaining விநாடிகள் காத்திருக்கவும்." 
-                else 
-                    "Too many incorrect attempts. Please wait $remaining seconds."
-            } else {
-                if (lockoutSeconds > 0) {
-                    lockoutSeconds = 0
-                    errorMessage = null
-                    secPrefs.resetFailedAttempts()
-                }
+    var pinInput by remember { mutableStateOf("") }
+    var pinConfirmInput by remember { mutableStateOf("") }
+    var pinError by remember { mutableStateOf<String?>(null) }
+
+    var remainingLockoutSeconds by remember { mutableIntStateOf(securityManager.getRemainingLockoutSeconds()) }
+    var failedAttempts by remember { mutableIntStateOf(securityManager.getFailedAttemptsCount()) }
+
+    LaunchedEffect(remainingLockoutSeconds) {
+        if (remainingLockoutSeconds > 0) {
+            while (remainingLockoutSeconds > 0) {
+                kotlinx.coroutines.delay(1000L)
+                remainingLockoutSeconds = securityManager.getRemainingLockoutSeconds()
             }
-            delay(500L)
+            securityManager.resetFailedAttempts()
+            failedAttempts = 0
+            pinError = null
         }
     }
 
-    val triggerBiometric = {
-        if (activity != null && isBiometricAvailable && lockoutSeconds == 0) {
-            BiometricAuthHelper.launchBiometricPrompt(
+    fun launchBiometricOrPin() {
+        val currentLockout = securityManager.getRemainingLockoutSeconds()
+        if (currentLockout > 0) {
+            remainingLockoutSeconds = currentLockout
+            showPinDialog = true
+            return
+        }
+
+        val activity = context as? FragmentActivity
+        val biometricsAvailable = BiometricAuthHelper.isDeviceBiometricOrLockAvailable(context)
+
+        if (biometricsAvailable && activity != null) {
+            BiometricAuthHelper.promptBiometricAuth(
                 activity = activity,
-                language = currentLanguage,
+                title = if (isTa) "ஜஸ்ட்ரா சட்ட பெட்டக அங்கீகாரம்" else "Justra Legal Vault Authentication",
+                subtitle = if (isTa) "கைரேகை அல்லது சாதன பூட்டு மூலம் உள்ளே நுழையவும்" else "Verify identity using Biometrics or Device Screen Lock",
                 onSuccess = {
-                    secPrefs.resetFailedAttempts()
+                    securityManager.resetFailedAttempts()
+                    failedAttempts = 0
                     onAuthenticated()
                 },
-                onError = { _, err -> errorMessage = err },
-                onNegativeButtonTapped = { }
+                onError = { err ->
+                    val newCount = securityManager.recordFailedAttempt()
+                    failedAttempts = newCount
+                    remainingLockoutSeconds = securityManager.getRemainingLockoutSeconds()
+                    showPinDialog = true
+                },
+                onFallbackToPin = {
+                    showPinDialog = true
+                }
             )
+        } else {
+            showPinDialog = true
         }
     }
 
     LaunchedEffect(Unit) {
-        if (isBiometricAvailable && lockoutSeconds == 0) {
-            triggerBiometric()
-        }
+        launchBiometricOrPin()
     }
 
     Scaffold(
         contentWindowInsets = WindowInsets.navigationBars,
-        containerColor = Color(0xFF0F1E36)
+        containerColor = SovereignNavy,
+        modifier = modifier.testTag("auth_screen")
     ) { innerPadding ->
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -119,178 +129,274 @@ fun AuthScreen(
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(top = 24.dp)
+                modifier = Modifier.padding(top = 48.dp)
             ) {
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .size(80.dp)
+                        .size(88.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFE5A93C).copy(alpha = 0.15f))
-                        .border(2.dp, Color(0xFFE5A93C), CircleShape)
+                        .background(AccentTerracotta)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Lock,
-                        contentDescription = null,
-                        tint = Color(0xFFE5A93C),
-                        modifier = Modifier.size(40.dp)
+                        imageVector = Icons.Default.Gavel,
+                        contentDescription = "Justra Logo",
+                        tint = Color.White,
+                        modifier = Modifier.size(44.dp)
                     )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
                 Text(
-                    text = if (isTa) "ஜஸ்ட்ரா தனிப்பட்ட பெட்டகம்" else "JUSTRA SECURE VAULT",
-                    style = MaterialTheme.typography.titleLarge.copy(
+                    text = if (isTa) "ஜஸ்ட்ரா சட்ட தளம்" else "JUSTRA LEGAL PLATFORM",
+                    style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFFFAF7F2),
+                        color = Color.White,
+                        fontFamily = FontFamily.Serif,
                         letterSpacing = 1.sp
                     )
                 )
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = if (isTa) "கைரேகை அல்லது பாதுகாப்பு PIN மூலம் திறக்கவும்" else "Authenticate with Biometrics or Security PIN",
-                    style = MaterialTheme.typography.bodyMedium.copy(color = Color(0xFFFAF7F2).copy(alpha = 0.7f)),
+                    text = if (isTa) "இந்திய குடிமக்களுக்கான சட்ட உதவி தளம்" else "Sovereign AI Legal Engine & Dispute Resolution",
+                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.White.copy(alpha = 0.8f)),
                     textAlign = TextAlign.Center
                 )
             }
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
-                ) {
-                    repeat(expectedPinLength) { index ->
-                        val isFilled = index < pinState.length
-                        Box(
-                            modifier = Modifier
-                                .padding(6.dp)
-                                .size(16.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    if (isFilled) Color(0xFFE5A93C) else Color.White.copy(alpha = 0.2f)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                if (remainingLockoutSeconds > 0) {
+                    Card(
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                        modifier = Modifier.fillMaxWidth().testTag("lockout_timer_banner")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Lock,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                            Text(
+                                text = if (isTa)
+                                    "பாதுகாப்பு பூட்டு: பல தவறான முயற்சிகள். $remainingLockoutSeconds வினாடிகளுக்குப் பிறகு மீண்டும் முயற்சிக்கவும்."
+                                else
+                                    String.format("Security Lockout: Too many failed attempts. Please try again in %d seconds.", remainingLockoutSeconds),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onErrorContainer
                                 )
-                                .border(
-                                    1.dp,
-                                    if (isFilled) Color(0xFFE5A93C) else Color.White.copy(alpha = 0.4f),
-                                    CircleShape
-                                )
+                            )
+                        }
+                    }
+                } else {
+                    Button(
+                        onClick = { launchBiometricOrPin() },
+                        enabled = remainingLockoutSeconds <= 0,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AccentTerracotta,
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(54.dp)
+                            .testTag("auth_continue_button")
+                    ) {
+                        Text(
+                            text = if (isTa) "முகப்பிற்கு செல்லவும்" else "Continue to Justra",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            tint = Color.White
                         )
                     }
                 }
 
-                if (errorMessage != null) {
+                OutlinedButton(
+                    onClick = { showPinDialog = true },
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.6f)),
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .testTag("auth_pin_option_button")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Pin,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = errorMessage ?: "",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = if (lockoutSeconds > 0) Color(0xFFFFA07A) else Color(0xFFFF6B6B),
-                            fontWeight = FontWeight.Bold
-                        ),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        text = if (isTa) "செயலி PIN பயன்படுத்தி நுழைக" else "Unlock with In-App PIN",
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
                     )
                 }
             }
+        }
+    }
 
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                val digits = listOf(
-                    listOf("1", "2", "3"),
-                    listOf("4", "5", "6"),
-                    listOf("7", "8", "9"),
-                    listOf("BIO", "0", "DEL")
-                )
+    // In-App PIN Creation / Authentication Dialog
+    if (showPinDialog) {
+        AlertDialog(
+            onDismissRequest = { showPinDialog = false },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(imageVector = Icons.Default.Lock, contentDescription = null, tint = SovereignNavy)
+                    Text(
+                        text = if (isCreatePinMode) {
+                            if (isTa) "புதிய 4-இலக்க PIN உருவாக்கவும்" else "Create 4-Digit App PIN"
+                        } else {
+                            if (isTa) "பாதுகாப்பு PIN உள்ளிடவும்" else "Enter 4-Digit App PIN"
+                        },
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy)
+                    )
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    if (remainingLockoutSeconds > 0) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp)
+                        ) {
+                            Text(
+                                text = if (isTa)
+                                    "பாதுகாப்பு பூட்டு: பல தவறான முயற்சிகள். $remainingLockoutSeconds வினாடிகளுக்குப் பிறகு மீண்டும் முயற்சிக்கவும்."
+                                else
+                                    String.format("Security Lockout: Too many failed attempts. Please try again in %d seconds.", remainingLockoutSeconds),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onErrorContainer
+                                ),
+                                modifier = Modifier.padding(10.dp)
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = if (isCreatePinMode) {
+                                if (isTa) "கைரேகை கிடைக்காதபோது செயலியை திறக்க 4-இலக்க PIN தேவை" else "Set up a 4-digit in-app security PIN as a fallback for app lock."
+                            } else {
+                                if (isTa) "தொடர உங்கள் 4-இலக்க PIN ஐ உள்ளிடவும்" else "Enter your 4-digit security PIN to unlock the Justra Legal Vault."
+                            },
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
 
-                digits.forEach { row ->
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)
-                    ) {
-                        row.forEach { key ->
-                            val isKeyEnabled = lockoutSeconds == 0
-                            Surface(
-                                onClick = {
-                                    if (lockoutSeconds > 0) return@Surface
-                                    errorMessage = null
-                                    when (key) {
-                                        "DEL" -> if (pinState.isNotEmpty()) pinState = pinState.dropLast(1)
-                                        "BIO" -> triggerBiometric()
-                                        else -> {
-                                            if (pinState.length < expectedPinLength) {
-                                                val nextPin = pinState + key
-                                                pinState = nextPin
-                                                if (nextPin.length == expectedPinLength) {
-                                                    if (secPrefs.hasEnrolledPin()) {
-                                                        if (secPrefs.verifyPin(nextPin)) {
-                                                            secPrefs.resetFailedAttempts()
-                                                            onAuthenticated()
-                                                        } else {
-                                                            val failedCount = secPrefs.incrementFailedAttempts()
-                                                            pinState = ""
-                                                            if (failedCount >= 3) {
-                                                                secPrefs.setLockoutExpiryTimestamp(System.currentTimeMillis() + 30000L)
-                                                                lockoutSeconds = 30
-                                                                errorMessage = if (isTa) 
-                                                                    "பல முறை தவறான PIN. தயவுசெய்து 30 விநாடிகள் காத்திருக்கவும்." 
-                                                                else 
-                                                                    "Too many incorrect attempts. Please wait 30 seconds."
-                                                            } else {
-                                                                val remainingAttempts = 3 - failedCount
-                                                                errorMessage = if (isTa) 
-                                                                    "தவறான PIN. மீண்டும் முயற்சிக்கவும் ($remainingAttempts வாய்ப்புகள் பாக்கி)." 
-                                                                else 
-                                                                    "Incorrect PIN. Try again ($remainingAttempts attempts left)."
-                                                            }
-                                                        }
-                                                    } else {
-                                                        secPrefs.savePin(nextPin)
-                                                        secPrefs.resetFailedAttempts()
-                                                        Toast.makeText(
-                                                            context, 
-                                                            if (isTa) "PIN வெற்றிகரமாக பதிவு செய்யப்பட்டது" else "PIN Enrolled Successfully", 
-                                                            Toast.LENGTH_SHORT
-                                                        ).show()
-                                                        onAuthenticated()
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                },
-                                enabled = isKeyEnabled,
-                                shape = CircleShape,
-                                color = if (isKeyEnabled) Color.White.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.04f),
-                                contentColor = if (isKeyEnabled) Color(0xFFFAF7F2) else Color.White.copy(alpha = 0.3f),
-                                modifier = Modifier.size(68.dp)
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    when (key) {
-                                        "BIO" -> Icon(
-                                            Icons.Default.Fingerprint, 
-                                            contentDescription = "Biometric", 
-                                            tint = if (isKeyEnabled) Color(0xFFE5A93C) else Color(0xFFE5A93C).copy(alpha = 0.3f)
-                                        )
-                                        "DEL" -> Icon(
-                                            Icons.AutoMirrored.Filled.Backspace, 
-                                            contentDescription = "Delete", 
-                                            tint = if (isKeyEnabled) Color(0xFFFAF7F2) else Color(0xFFFAF7F2).copy(alpha = 0.3f)
-                                        )
-                                        else -> Text(
-                                            text = key, 
-                                            style = MaterialTheme.typography.titleLarge.copy(
-                                                fontWeight = FontWeight.Bold,
-                                                color = if (isKeyEnabled) Color(0xFFFAF7F2) else Color.White.copy(alpha = 0.3f)
-                                            )
-                                        )
-                                    }
+                    OutlinedTextField(
+                        value = pinInput,
+                        onValueChange = {
+                            if (it.length <= 4 && it.all { char -> char.isDigit() }) {
+                                pinInput = it
+                                pinError = null
+                            }
+                        },
+                        enabled = remainingLockoutSeconds <= 0,
+                        label = { Text(if (isTa) "4-இலக்க PIN" else "4-Digit PIN") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                        singleLine = true,
+                        shape = RoundedCornerShape(10.dp),
+                        colors = nyayaOutlinedTextFieldColors(),
+                        modifier = Modifier.fillMaxWidth().testTag("auth_pin_input_field")
+                    )
+
+                    if (isCreatePinMode) {
+                        OutlinedTextField(
+                            value = pinConfirmInput,
+                            onValueChange = {
+                                if (it.length <= 4 && it.all { char -> char.isDigit() }) {
+                                    pinConfirmInput = it
+                                    pinError = null
+                                }
+                            },
+                            enabled = remainingLockoutSeconds <= 0,
+                            label = { Text(if (isTa) "PIN உறுதிப்படுத்தவும்" else "Confirm 4-Digit PIN") },
+                            visualTransformation = PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                            singleLine = true,
+                            shape = RoundedCornerShape(10.dp),
+                            colors = nyayaOutlinedTextFieldColors(),
+                            modifier = Modifier.fillMaxWidth().testTag("auth_pin_confirm_input_field")
+                        )
+                    }
+
+                    if (pinError != null && remainingLockoutSeconds <= 0) {
+                        Text(
+                            text = pinError!!,
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.error)
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    enabled = remainingLockoutSeconds <= 0,
+                    onClick = {
+                        if (remainingLockoutSeconds > 0) return@Button
+                        if (isCreatePinMode) {
+                            if (pinInput.length != 4) {
+                                pinError = if (isTa) "சரியாக 4 இலக்கங்களை உள்ளிடவும்" else "PIN must be exactly 4 digits"
+                            } else if (pinInput != pinConfirmInput) {
+                                pinError = if (isTa) "PIN எண்கள் பொருந்தவில்லை" else "PINs do not match"
+                            } else {
+                                onSetVaultPin(pinInput)
+                                securityManager.resetFailedAttempts()
+                                failedAttempts = 0
+                                showPinDialog = false
+                                onAuthenticated()
+                            }
+                        } else {
+                            if (pinInput.length != 4) {
+                                pinError = if (isTa) "4 இலக்கங்களை உள்ளிடவும்" else "Enter 4 digits"
+                            } else if (onVerifyPin(pinInput)) {
+                                securityManager.resetFailedAttempts()
+                                failedAttempts = 0
+                                showPinDialog = false
+                                onAuthenticated()
+                            } else {
+                                val newCount = securityManager.recordFailedAttempt()
+                                failedAttempts = newCount
+                                val lockoutSec = securityManager.getRemainingLockoutSeconds()
+                                remainingLockoutSeconds = lockoutSec
+                                if (lockoutSec <= 0) {
+                                    val remainingAttempts = (5 - newCount).coerceAtLeast(0)
+                                    pinError = if (isTa) "தவறான PIN. $remainingAttempts முயற்சிகள் மீதமுள்ளன." else "Incorrect PIN. $remainingAttempts attempts remaining."
+                                } else {
+                                    pinError = null
                                 }
                             }
                         }
-                    }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = SovereignNavy, contentColor = Color.White)
+                ) {
+                    Text(if (isCreatePinMode) (if (isTa) "PIN சேமிக்க" else "Save & Unlock") else (if (isTa) "திறக்கவும்" else "Unlock"))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPinDialog = false }) {
+                    Text(if (isTa) "ரத்து" else "Cancel")
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-        }
+        )
     }
 }

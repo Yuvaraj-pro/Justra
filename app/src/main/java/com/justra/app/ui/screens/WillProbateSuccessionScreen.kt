@@ -51,18 +51,19 @@ fun WillProbateSuccessionScreen(
         ) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SovereignNavy),
+                colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                border = BorderStroke(1.dp, CardBorderStroke),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (isTa) "📜 உயில் பதிவு செய்யப்படாவிட்டாலும் சட்டப்படி செல்லுபடியாகும்" else "📜 Valid Unregistered Will & 2-Witness Attestation",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Serif)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy, fontFamily = FontFamily.Serif)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (isTa) "உயிலை கட்டாயம் பதிவு செய்ய வேண்டியதில்லை. இரு சாட்சிகள் கையெழுத்திட்டால் போதுமானது." else "Registration of Will is optional under Sec 18 Registration Act. Requires 2 independent attesting witnesses.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                     )
                 }
             }

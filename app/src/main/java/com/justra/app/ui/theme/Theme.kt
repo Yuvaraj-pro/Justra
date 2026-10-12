@@ -61,11 +61,11 @@ val MaterialTheme.nyayaColors: NyayaCustomColors
 
 private val LightColorScheme = lightColorScheme(
     primary = SovereignNavy,
-    onPrimary = OnSovereignNavy,
+    onPrimary = Color.White,
     primaryContainer = SoftNavyContainer,
     onPrimaryContainer = OnNavyContainer,
     secondary = AccentTerracotta,
-    onSecondary = OnAccentTerracotta,
+    onSecondary = Color.White,
     secondaryContainer = TerracottaBadgeContainer,
     onSecondaryContainer = OnTerracottaText,
     tertiary = SovereignNavy,
@@ -92,30 +92,30 @@ private val LightColorScheme = lightColorScheme(
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = PinkMist,
-    onPrimary = DarkOnPrimary,
-    primaryContainer = CrushedBerry,
-    onPrimaryContainer = LightCyan,
-    secondary = BubblegumPink,
-    onSecondary = DarkOnSecondary,
-    secondaryContainer = Raspberry,
-    onSecondaryContainer = Color.White,
-    tertiary = LightCyan,
-    onTertiary = Color(0xFF00363D),
-    tertiaryContainer = Color(0xFF004F56),
-    onTertiaryContainer = LightCyan,
-    background = DarkNavyBackground,
-    onBackground = DarkOnSurface,
-    surface = DarkSandstoneSurface,
-    onSurface = DarkOnSurface,
-    surfaceVariant = DarkSurfaceVariant,
-    onSurfaceVariant = PinkMist,
-    surfaceTint = PinkMist,
-    inverseSurface = DarkOnSurface,
-    inverseOnSurface = DarkNavyBackground,
-    inversePrimary = CrushedBerry,
-    outline = Color(0xFF6B2937),
-    outlineVariant = Color(0xFF471822),
+    primary = Color(0xFF38BDF8),
+    onPrimary = Color(0xFF0F172A),
+    primaryContainer = Color(0xFF1E293B),
+    onPrimaryContainer = Color(0xFFE2E8F0),
+    secondary = Color(0xFFFB923C),
+    onSecondary = Color(0xFF0F172A),
+    secondaryContainer = Color(0xFF334155),
+    onSecondaryContainer = Color(0xFFE2E8F0),
+    tertiary = Color(0xFF38BDF8),
+    onTertiary = Color(0xFF0F172A),
+    tertiaryContainer = Color(0xFF1E293B),
+    onTertiaryContainer = Color(0xFFE2E8F0),
+    background = Color(0xFF0F172A),
+    onBackground = Color(0xFFFFFFFF),
+    surface = Color(0xFF1E293B),
+    onSurface = Color(0xFFE2E8F0),
+    surfaceVariant = Color(0xFF334155),
+    onSurfaceVariant = Color(0xFFCBD5E1),
+    surfaceTint = Color(0xFF38BDF8),
+    inverseSurface = Color(0xFFE2E8F0),
+    inverseOnSurface = Color(0xFF0F172A),
+    inversePrimary = Color(0xFF1E293B),
+    outline = Color(0xFF475569),
+    outlineVariant = Color(0xFF334155),
     scrim = Color.Black,
     error = DarkOnHennaAlert,
     errorContainer = DarkHennaAlertContainer,
@@ -148,36 +148,45 @@ private val DarkNyayaColors = NyayaCustomColors(
     onContainerWarning = DarkOnAmberWarning,
     containerAlert = DarkHennaAlertContainer,
     onContainerAlert = DarkOnHennaAlert,
-    crushedBerry = PinkMist,
-    raspberry = BubblegumPink,
-    bubblegumPink = Raspberry,
-    pinkMist = CrushedBerry,
-    lightCyan = LightCyan,
-    backgroundColor = DarkNavyBackground,
-    secondaryTextColor = PinkMist,
+    crushedBerry = Color(0xFF38BDF8),
+    raspberry = Color(0xFFFB923C),
+    bubblegumPink = Color(0xFFFDBA74),
+    pinkMist = Color(0xFFBAE6FD),
+    lightCyan = Color(0xFF1E293B),
+    backgroundColor = Color(0xFF0F172A),
+    secondaryTextColor = Color(0xFFCBD5E1),
     gradientRight = PaletteGradientRight,
     gradientBottomRight = PaletteGradientBottomRight
 )
 
+enum class ThemeMode(val modeValue: Int) {
+    SYSTEM(0),
+    LIGHT(1),
+    DARK(2);
+
+    companion object {
+        fun fromInt(value: Int): ThemeMode {
+            return values().firstOrNull { it.modeValue == value } ?: SYSTEM
+        }
+    }
+}
+
 /**
  * Material 3 Theme for Justra application.
- * Default dynamicColor is false to guarantee the requested sovereign color palette.
+ * Supports light, dark, and system themes.
  */
 @Composable
 fun JustraTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
+    darkTheme: Boolean = when (themeMode) {
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+    },
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme: ColorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
+    val colorScheme: ColorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     val customColors = if (darkTheme) DarkNyayaColors else LightNyayaColors
 
     CompositionLocalProvider(LocalNyayaCustomColors provides customColors) {
@@ -187,6 +196,19 @@ fun JustraTheme(
             content = content
         )
     }
+}
+
+@Composable
+fun JustraTheme(
+    darkTheme: Boolean,
+    dynamicColor: Boolean = false,
+    content: @Composable () -> Unit
+) {
+    JustraTheme(
+        themeMode = if (darkTheme) ThemeMode.DARK else ThemeMode.LIGHT,
+        dynamicColor = dynamicColor,
+        content = content
+    )
 }
 
 @Composable
@@ -209,26 +231,42 @@ fun MyApplicationTheme(
 
 /**
  * Standard High-Contrast OutlinedTextField colors conforming to WCAG 2.1 AA (>12:1 contrast).
- * Enforces deep ink black text on sandstone containers and visible slate gray placeholders.
+ * Enforces deep ink black text on sandstone containers in light mode, and bright slate text on dark surfaces in dark mode.
  */
 @Composable
 fun justraOutlinedTextFieldColors(): androidx.compose.material3.TextFieldColors =
     nyayaOutlinedTextFieldColors()
 
 @Composable
-fun nyayaOutlinedTextFieldColors(): androidx.compose.material3.TextFieldColors =
-    androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-        focusedTextColor = Color(0xFF14181F),
-        unfocusedTextColor = Color(0xFF14181F),
-        focusedContainerColor = Color(0xFFF3ECE1),
-        unfocusedContainerColor = Color(0xFFF3ECE1),
-        cursorColor = Color(0xFF0F1E36),
-        focusedBorderColor = Color(0xFF0F1E36),
-        unfocusedBorderColor = Color(0xFFD4CAB8),
-        focusedPlaceholderColor = Color(0xFF5A606A),
-        unfocusedPlaceholderColor = Color(0xFF5A606A),
-        focusedSupportingTextColor = Color(0xFF4A4E57),
-        unfocusedSupportingTextColor = Color(0xFF4A4E57)
-    )
-
-
+fun nyayaOutlinedTextFieldColors(): androidx.compose.material3.TextFieldColors {
+    val isDark = MaterialTheme.colorScheme.background == Color(0xFF0F172A) || MaterialTheme.colorScheme.surface == Color(0xFF1E293B)
+    return if (isDark) {
+        androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+            focusedTextColor = Color(0xFFE2E8F0),
+            unfocusedTextColor = Color(0xFFE2E8F0),
+            focusedContainerColor = Color(0xFF1E293B),
+            unfocusedContainerColor = Color(0xFF1E293B),
+            cursorColor = Color(0xFF38BDF8),
+            focusedBorderColor = Color(0xFF38BDF8),
+            unfocusedBorderColor = Color(0xFF475569),
+            focusedPlaceholderColor = Color(0xFFCBD5E1),
+            unfocusedPlaceholderColor = Color(0xFF94A3B8),
+            focusedSupportingTextColor = Color(0xFFCBD5E1),
+            unfocusedSupportingTextColor = Color(0xFF94A3B8)
+        )
+    } else {
+        androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+            focusedTextColor = Color(0xFF14181F),
+            unfocusedTextColor = Color(0xFF14181F),
+            focusedContainerColor = Color(0xFFF3ECE1),
+            unfocusedContainerColor = Color(0xFFF3ECE1),
+            cursorColor = Color(0xFF0F1E36),
+            focusedBorderColor = Color(0xFF0F1E36),
+            unfocusedBorderColor = Color(0xFFD4CAB8),
+            focusedPlaceholderColor = Color(0xFF5A606A),
+            unfocusedPlaceholderColor = Color(0xFF5A606A),
+            focusedSupportingTextColor = Color(0xFF4A4E57),
+            unfocusedSupportingTextColor = Color(0xFF4A4E57)
+        )
+    }
+}

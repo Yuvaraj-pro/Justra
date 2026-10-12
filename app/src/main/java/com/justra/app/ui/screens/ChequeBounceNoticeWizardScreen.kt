@@ -58,18 +58,19 @@ fun ChequeBounceNoticeWizardScreen(
         ) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SovereignNavy),
+                colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                border = BorderStroke(1.dp, CardBorderStroke),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (isTa) "📜 30 நாட்களுக்குள் சட்டப்பூர்வ அறிவிப்பு கட்டாயம்" else "📜 Mandatory 30-Day Demand Notice Rule",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Serif)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy, fontFamily = FontFamily.Serif)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (isTa) "செக் திரும்பிய வங்கியின் Memo கிடைத்த 30 நாட்களுக்குள் 15 நாட்கள் அவகாச அறிவிப்பு அனுப்ப வேண்டும்." else "Notice must be dispatched within 30 days of Bank Memo receipt, demanding repayment within 15 days.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                     )
                 }
             }

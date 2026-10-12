@@ -4,12 +4,27 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.justra.app.domain.model.LanguagePreference
 import java.io.InputStream
+// Charsets is available via kotlin.text.Charsets (no import needed in Kotlin stdlib)
 import java.security.MessageDigest
 import java.util.UUID
 
 class SecurityManager(context: Context) {
-    private val prefs: SharedPreferences =
+    private val prefs: SharedPreferences = try {
+        val masterKey = androidx.security.crypto.MasterKey.Builder(context)
+            .setKeyScheme(androidx.security.crypto.MasterKey.KeyScheme.AES256_GCM)
+            .build()
+        androidx.security.crypto.EncryptedSharedPreferences.create(
+            context,
+            "justra_secure_vault_encrypted_prefs",
+            masterKey,
+            androidx.security.crypto.EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            androidx.security.crypto.EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    } catch (e: Exception) {
         context.getSharedPreferences("justra_secure_vault_prefs", Context.MODE_PRIVATE)
+    }
+
+    val appContext: Context = context.applicationContext
 
     companion object {
         private const val KEY_LANG = "pref_user_language"
@@ -33,6 +48,18 @@ class SecurityManager(context: Context) {
         private const val KEY_SELECTED_JURISDICTION = "pref_selected_jurisdiction_code"
         private const val KEY_LAST_BACKGROUND_TIMESTAMP = "pref_last_background_timestamp"
         private const val KEY_LAST_ACTIVE_TIMESTAMP = "pref_last_active_timestamp"
+        private const val KEY_LEGAL_DISCLAIMER_ACCEPTED = "pref_legal_disclaimer_accepted"
+        private const val KEY_FAILED_ATTEMPTS_COUNT = "pref_failed_attempts_count"
+        private const val KEY_LOCKOUT_START_TIME = "pref_lockout_start_time"
+        private const val KEY_THEME_MODE = "pref_theme_mode"
+    }
+
+    fun getThemeMode(): Int {
+        return prefs.getInt(KEY_THEME_MODE, 1)
+    }
+
+    fun setThemeMode(mode: Int) {
+        prefs.edit().putInt(KEY_THEME_MODE, mode).apply()
     }
 
     fun recordAppBackgrounded(timestamp: Long = System.currentTimeMillis()) {
@@ -43,19 +70,28 @@ class SecurityManager(context: Context) {
         return prefs.getLong(KEY_LAST_BACKGROUND_TIMESTAMP, 0L)
     }
 
+    fun recordUserActivity(timestamp: Long = System.currentTimeMillis()) {
+        prefs.edit().putLong(KEY_LAST_ACTIVE_TIMESTAMP, timestamp).apply()
+    }
+
     fun getLastActiveTimestamp(): Long {
         return prefs.getLong(KEY_LAST_ACTIVE_TIMESTAMP, System.currentTimeMillis())
     }
 
     fun shouldTriggerReauth(currentTime: Long = System.currentTimeMillis()): Boolean {
-        if (!isBiometricLockEnabled() || !hasAcceptedStatutoryConsent()) {
+        if (!isBiometricLockEnabled()) {
             return false
         }
-        val bgTime = getLastBackgroundTimestamp()
-        if (bgTime <= 0L) return false
-        val elapsed = currentTime - bgTime
         val timeoutMs = getAutoLockTimeoutMinutes() * 60 * 1000L
-        return elapsed >= timeoutMs
+        val bgTime = getLastBackgroundTimestamp()
+        if (bgTime > 0L && (currentTime - bgTime) >= timeoutMs) {
+            return true
+        }
+        val activeTime = getLastActiveTimestamp()
+        if (activeTime > 0L && (currentTime - activeTime) >= timeoutMs) {
+            return true
+        }
+        return false
     }
 
     fun onReauthSuccess() {
@@ -64,7 +100,6 @@ class SecurityManager(context: Context) {
             .putLong(KEY_LAST_ACTIVE_TIMESTAMP, System.currentTimeMillis())
             .apply()
     }
-
 
     fun getAutoLockTimeoutMinutes(): Int {
         return prefs.getInt(KEY_AUTO_LOCK_TIMEOUT, 5)
@@ -107,7 +142,7 @@ class SecurityManager(context: Context) {
     }
 
     fun getSelectedDistrict(): String {
-        return prefs.getString(KEY_SELECTED_DISTRICT, "Chennai (சென்னை)") ?: "Chennai (சென்னை)"
+        return prefs.getString(KEY_SELECTED_DISTRICT, "") ?: ""
     }
 
     fun setSelectedDistrict(district: String) {
@@ -115,7 +150,7 @@ class SecurityManager(context: Context) {
     }
 
     fun getAdvocateEnrollmentId(): String {
-        return prefs.getString(KEY_ADVOCATE_ENROLL_ID, "MS/1842/2019") ?: "MS/1842/2019"
+        return prefs.getString(KEY_ADVOCATE_ENROLL_ID, "") ?: ""
     }
 
     fun setAdvocateEnrollmentId(id: String) {
@@ -144,6 +179,46 @@ class SecurityManager(context: Context) {
         prefs.edit().putString(KEY_USER_ROLE, role.id).apply()
     }
 
+    fun getFailedAttemptsCount(): Int {
+        return prefs.getInt(KEY_FAILED_ATTEMPTS_COUNT, 0)
+    }
+
+    fun getLockoutStartTime(): Long {
+        return prefs.getLong(KEY_LOCKOUT_START_TIME, 0L)
+    }
+
+    fun getRemainingLockoutSeconds(): Int {
+        val attempts = getFailedAttemptsCount()
+        if (attempts < 5) return 0
+        val startTime = getLockoutStartTime()
+        if (startTime == 0L) return 0
+        val elapsed = (System.currentTimeMillis() - startTime) / 1000L
+        val remaining = 60L - elapsed
+        if (remaining <= 0) {
+            resetFailedAttempts()
+            return 0
+        }
+        return remaining.toInt()
+    }
+
+    fun recordFailedAttempt(): Int {
+        val currentAttempts = getFailedAttemptsCount() + 1
+        val editor = prefs.edit()
+        editor.putInt(KEY_FAILED_ATTEMPTS_COUNT, currentAttempts)
+        if (currentAttempts >= 5 && getLockoutStartTime() == 0L) {
+            editor.putLong(KEY_LOCKOUT_START_TIME, System.currentTimeMillis())
+        }
+        editor.apply()
+        return currentAttempts
+    }
+
+    fun resetFailedAttempts() {
+        prefs.edit()
+            .putInt(KEY_FAILED_ATTEMPTS_COUNT, 0)
+            .putLong(KEY_LOCKOUT_START_TIME, 0L)
+            .apply()
+    }
+
     fun hasVaultPin(): Boolean {
         return prefs.getString(KEY_VAULT_PIN, null) != null
     }
@@ -154,13 +229,27 @@ class SecurityManager(context: Context) {
     }
 
     fun verifyVaultPin(inputPin: String): Boolean {
+        if (getRemainingLockoutSeconds() > 0) {
+            return false
+        }
         val savedHash = prefs.getString(KEY_VAULT_PIN, null)
         if (savedHash == null) {
-            // Default first-time PIN accept any >= 4 digits or "1234"
-            return inputPin.length >= 4
+            if (inputPin.length >= 4) {
+                setVaultPin(inputPin)
+                resetFailedAttempts()
+                return true
+            }
+            recordFailedAttempt()
+            return false
         }
         val inputHash = calculateSha256("JUSTRA_PIN_$inputPin")
-        return inputHash == savedHash
+        val isCorrect = inputHash == savedHash
+        if (isCorrect) {
+            resetFailedAttempts()
+        } else {
+            recordFailedAttempt()
+        }
+        return isCorrect
     }
 
     fun getReadNotificationIds(): Set<String> {
@@ -197,6 +286,14 @@ class SecurityManager(context: Context) {
         prefs.edit().putLong(KEY_STATUTORY_CONSENT, System.currentTimeMillis()).apply()
     }
 
+    fun isLegalDisclaimerAccepted(): Boolean {
+        return prefs.getBoolean(KEY_LEGAL_DISCLAIMER_ACCEPTED, false)
+    }
+
+    fun setLegalDisclaimerAccepted(accepted: Boolean) {
+        prefs.edit().putBoolean(KEY_LEGAL_DISCLAIMER_ACCEPTED, accepted).apply()
+    }
+
     fun getStatutoryConsentTimestamp(): Long {
         return prefs.getLong(KEY_STATUTORY_CONSENT, 0L)
     }
@@ -218,7 +315,7 @@ class SecurityManager(context: Context) {
     }
 
     fun getUserDisplayName(): String {
-        return prefs.getString(KEY_USER_DISPLAY_NAME, "Citizen User") ?: "Citizen User"
+        return prefs.getString(KEY_USER_DISPLAY_NAME, "") ?: ""
     }
 
     fun setUserDisplayName(name: String) {
@@ -226,7 +323,7 @@ class SecurityManager(context: Context) {
     }
 
     fun getUserPhoneNumber(): String {
-        return prefs.getString(KEY_USER_PHONE, "+91 98765 43210") ?: "+91 98765 43210"
+        return prefs.getString(KEY_USER_PHONE, "") ?: ""
     }
 
     fun setUserPhoneNumber(phone: String) {
@@ -264,5 +361,49 @@ class SecurityManager(context: Context) {
             digest.update(buffer, 0, bytesRead)
         }
         return digest.digest().joinToString("") { "%02x".format(it) }
+    }
+
+    fun saveUserProfile(displayName: String, phoneNumber: String, district: String, advocateEnrollmentId: String) {
+        prefs.edit()
+            .putString(KEY_USER_DISPLAY_NAME, displayName)
+            .putString(KEY_USER_PHONE, phoneNumber)
+            .putString(KEY_SELECTED_DISTRICT, district)
+            .putString(KEY_ADVOCATE_ENROLL_ID, advocateEnrollmentId)
+            .apply()
+    }
+
+    fun saveSecurityPin(pin: String) {
+        setVaultPin(pin)
+    }
+
+    fun clearAllUserData() {
+        clearAllPreferences()
+    }
+
+    fun exportAllUserDataJson(): String {
+        val name = getUserDisplayName()
+        val phone = getUserPhoneNumber()
+        val role = getUserRole().name
+        val district = getSelectedDistrict()
+        val enrollId = getAdvocateEnrollmentId()
+        val lang = getLanguagePreference().code
+        return """
+            {
+              "exportTimestamp": ${System.currentTimeMillis()},
+              "appName": "Justra Sovereign Legal Engine",
+              "userProfile": {
+                "displayName": "$name",
+                "phone": "$phone",
+                "activeRole": "$role",
+                "district": "$district",
+                "advocateEnrollmentId": "$enrollId",
+                "language": "$lang"
+              },
+              "vaultStatus": {
+                "hasPin": ${hasVaultPin()},
+                "biometricEnabled": ${isBiometricLockEnabled()}
+              }
+            }
+        """.trimIndent()
     }
 }

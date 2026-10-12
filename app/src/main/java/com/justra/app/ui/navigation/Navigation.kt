@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -19,11 +20,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.justra.app.domain.model.LanguagePreference
-import com.justra.app.ui.components.BiometricReauthModal
 import com.justra.app.ui.screens.AccountSettingsHubScreen
 import com.justra.app.ui.screens.ActionNavigatorScreen
 import com.justra.app.ui.screens.AuthScreen
-import com.justra.app.ui.screens.BiometricAuthScreen
 import com.justra.app.ui.screens.BnsIpcTransitionScreen
 import com.justra.app.ui.screens.ChatAssistantScreen
 import com.justra.app.ui.screens.ComplaintGeneratorScreen
@@ -45,7 +44,9 @@ import com.justra.app.ui.screens.NalsaFreeLegalAidScreen
 import com.justra.app.ui.screens.NewGrievanceScreen
 import com.justra.app.ui.screens.NotificationsRemindersCenterScreen
 import com.justra.app.ui.screens.OnboardingScreen
-import com.justra.app.ui.screens.PinAuthScreen
+import com.justra.app.ui.screens.PermissionsSetupScreen
+import com.justra.app.ui.screens.ProfileScreen
+import com.justra.app.ui.screens.SettingsScreen
 import com.justra.app.ui.screens.RtiDraftingWizardScreen
 import com.justra.app.ui.screens.ScamCheckerScreen
 import com.justra.app.ui.screens.Section65BCertificateGeneratorScreen
@@ -89,6 +90,7 @@ import com.justra.app.ui.viewmodel.JustraViewModel
 object JustraDestinations {
     const val SPLASH = "splash"
     const val ONBOARDING = "onboarding"
+    const val PERMISSIONS_SETUP = "permissions_setup"
     const val LANDING = "landing"
     const val AUTH = "auth"
     const val LANGUAGE_CONSENT = "language_consent"
@@ -100,7 +102,7 @@ object JustraDestinations {
     const val SMART_COMPLAINT = "smart_complaint/{caseId}"
     const val NEW_GRIEVANCE = "new_grievance"
     const val EVIDENCE_VAULT = "evidence_vault/{caseId}"
-    const val VOICE_COMPLAINT = "voice_complaint"
+    const val VOICE_INTAKE = "voice_intake"
     const val TIMELINE_READINESS = "timeline_readiness/{caseId}"
     const val SCAM_CHECKER = "scam_checker"
     const val COUNSEL_HANDOFF = "counsel_handoff/{caseId}"
@@ -119,10 +121,7 @@ object JustraDestinations {
     const val LIMITATION_REMINDERS = "limitation_reminders"
     const val GLOBAL_JURISDICTION = "global_jurisdiction"
     const val WORLD_WIDE_LAW = "world_wide_law"
-    const val VOICE_COMPLAINT_REGISTRATION = "voice_complaint_registration"
     const val CITIZENSHIP_LAWS = "citizenship_laws"
-    const val LEGAL_TOPIC_DETAIL = "legal_topic_detail/{topicId}"
-    const val VOICE_INTAKE = "voice_intake"
     const val BAIL_PREDICTOR = "bail_predictor"
     const val CHEQUE_BOUNCE_WIZARD = "cheque_bounce_wizard"
     const val CYBER_POSH_CELL = "cyber_posh_cell"
@@ -148,6 +147,8 @@ object JustraDestinations {
     const val SIM_FRAUD_TAFCOP = "sim_fraud_tafcop"
     const val ADOPTION_CARA_PROCESS = "adoption_cara_process"
     const val LITIGATION_COSTS_ESTIMATOR = "litigation_costs_estimator"
+    const val LEGAL_TOPIC_DETAIL = "legal_topic_detail/{topicId}"
+    const val VOICE_COMPLAINT_REGISTRATION = "voice_complaint_registration"
 }
 
 val NyayaMateDestinations = JustraDestinations
@@ -168,7 +169,16 @@ fun JustraNavGraph(
     val activeNation by viewModel.activeJurisdiction.collectAsState()
     val userRole by viewModel.userRole.collectAsState()
 
+    val hasVaultPin by viewModel.hasVaultPin.collectAsState()
     val startDestination = JustraDestinations.SPLASH
+
+    LaunchedEffect(isReauthRequired) {
+        if (isReauthRequired) {
+            navController.navigate(JustraDestinations.AUTH) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         NavHost(
@@ -215,8 +225,19 @@ fun JustraNavGraph(
             composable(JustraDestinations.ONBOARDING) {
                 OnboardingScreen(
                     onOnboardingFinished = {
-                        navController.navigate(JustraDestinations.LANDING) {
+                        navController.navigate(JustraDestinations.PERMISSIONS_SETUP) {
                             popUpTo(JustraDestinations.ONBOARDING) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            composable(JustraDestinations.PERMISSIONS_SETUP) {
+                PermissionsSetupScreen(
+                    currentLanguage = language,
+                    onPermissionsFinished = {
+                        navController.navigate(JustraDestinations.LANDING) {
+                            popUpTo(JustraDestinations.PERMISSIONS_SETUP) { inclusive = true }
                         }
                     }
                 )
@@ -246,7 +267,11 @@ fun JustraNavGraph(
             composable(JustraDestinations.AUTH) {
                 AuthScreen(
                     currentLanguage = language,
+                    hasVaultPin = hasVaultPin,
+                    onVerifyPin = { pin -> viewModel.verifyPinForReauth(pin) },
+                    onSetVaultPin = { pin -> viewModel.setVaultPin(pin) },
                     onAuthenticated = {
+                        viewModel.authenticate()
                         navController.navigate(JustraDestinations.HOME) {
                             popUpTo(JustraDestinations.AUTH) { inclusive = true }
                         }
@@ -276,7 +301,6 @@ fun JustraNavGraph(
                     notifications = emptyList(),
                     unreadNotificationsCount = 0,
                     onToggleLanguage = { viewModel.toggleLanguage() },
-                    onLockApp = { viewModel.lockApp() },
                     onSwitchRole = { newRole -> viewModel.setUserRole(newRole) },
                     onNavigateToRoute = { route -> navController.navigate(route) },
                     onNavigateToChat = { navController.navigate("chat") },
@@ -288,7 +312,7 @@ fun JustraNavGraph(
                     onNavigateToScamChecker = { navController.navigate(JustraDestinations.SCAM_CHECKER) },
                     onNavigateToCounselHandoff = { caseId -> navController.navigate("counsel_handoff/$caseId") },
                     onTopicClick = { categoryKey -> navController.navigate("sub_topic_detail/$categoryKey") },
-                    onNavigateToVoice = { navController.navigate("voice_complaint") },
+                    onNavigateToVoice = { navController.navigate(JustraDestinations.VOICE_INTAKE) },
                     onCreateNewDispute = { _, _, _, _, _, _, _, _ -> navController.navigate(JustraDestinations.NEW_GRIEVANCE) },
                     onDialHelpline = { number -> com.justra.app.util.ActionUtils.dialEmergencyHelpline(context, number) }
                 )
@@ -319,6 +343,7 @@ fun JustraNavGraph(
                 val chatMessages by viewModel.chatMessages.collectAsState(initial = emptyList())
                 val recordingState by viewModel.recordingState.collectAsState()
                 val audioWaveforms by viewModel.audioWaveforms.collectAsState()
+                val liveTranscript by viewModel.liveTranscript.collectAsState()
 
                 ChatAssistantScreen(
                     currentLanguage = language,
@@ -326,6 +351,7 @@ fun JustraNavGraph(
                     recordingState = recordingState,
                     audioWaveforms = audioWaveforms,
                     initialPrompt = prompt,
+                    liveTranscript = liveTranscript,
                     onSendMessage = { text -> viewModel.sendChatMessage(text) },
                     onStartRecording = { viewModel.startVoiceRecording() },
                     onStopRecording = { viewModel.stopVoiceRecordingAndSubmit() },
@@ -350,13 +376,6 @@ fun JustraNavGraph(
                     onDialHelpline = { number -> com.justra.app.util.ActionUtils.dialEmergencyHelpline(context, number) },
                     onToggleLanguage = { viewModel.toggleLanguage() },
                     onBackClick = { navController.popBackStack() }
-                )
-            }
-
-            composable("security_settings") {
-                PinAuthScreen(
-                    currentLanguage = language,
-                    onAuthenticated = { navController.popBackStack() }
                 )
             }
 
@@ -419,7 +438,7 @@ fun JustraNavGraph(
                     currentLanguage = language,
                     caseEntity = caseEntity,
                     artifactsFlow = artifactsFlow,
-                    onAddArtifact = { name, category, notes -> viewModel.addEvidenceArtifact(caseId, name, category, notes) },
+                    onAddArtifact = { name, category, notes, fileBytes, mimeType -> viewModel.addEvidenceArtifact(caseId, name, category, notes, fileBytes, mimeType) },
                     onDeleteArtifact = { artifactId -> viewModel.deleteArtifactById(artifactId) },
                     onToggleLanguage = { viewModel.toggleLanguage() },
                     onBackClick = { navController.popBackStack() }
@@ -544,7 +563,6 @@ fun JustraNavGraph(
                     activeCases = activeCases,
                     userRole = userRole,
                     onToggleLanguage = { viewModel.toggleLanguage() },
-                    onLockApp = { viewModel.lockApp() },
                     onNavigateToRoute = { route -> navController.navigate(route) },
                     onNavigateToActionNavigator = { caseId -> navController.navigate("action_navigator/$caseId") },
                     onNavigateToComplaint = { caseId -> navController.navigate("complaint_generator/$caseId") },
@@ -570,9 +588,32 @@ fun JustraNavGraph(
                 StatutoryToolsHubScreen(
                     currentLanguage = language,
                     onToggleLanguage = { viewModel.toggleLanguage() },
-                    onLockApp = { viewModel.lockApp() },
                     onNavigateToRoute = { route -> navController.navigate(route) },
                     onSelectTopic = { categoryKey -> navController.navigate("sub_topic_detail/$categoryKey") }
+                )
+            }
+
+            composable("profile") {
+                ProfileScreen(
+                    viewModel = viewModel,
+                    currentLanguage = language,
+                    onToggleLanguage = { viewModel.toggleLanguage() },
+                    onNavigateToSettings = { navController.navigate("settings") },
+                    onNavigateToLogin = {
+                        navController.navigate(JustraDestinations.AUTH) {
+                            popUpTo(JustraDestinations.HOME) { inclusive = true }
+                        }
+                    },
+                    onNavigateToRoute = { route -> navController.navigate(route) }
+                )
+            }
+
+            composable("settings") {
+                SettingsScreen(
+                    viewModel = viewModel,
+                    currentLanguage = language,
+                    onToggleLanguage = { viewModel.toggleLanguage() },
+                    onBackClick = { navController.popBackStack() }
                 )
             }
 
@@ -581,7 +622,7 @@ fun JustraNavGraph(
                     viewModel = viewModel,
                     currentLanguage = language,
                     onToggleLanguage = { viewModel.toggleLanguage() },
-                    onBackClick = { navController.popBackStack() },
+                    onNavigateBack = { navController.popBackStack() },
                     onNavigateToLogin = {
                         navController.navigate(JustraDestinations.AUTH) {
                             popUpTo(JustraDestinations.HOME) { inclusive = true }
@@ -595,7 +636,7 @@ fun JustraNavGraph(
                     viewModel = viewModel,
                     currentLanguage = language,
                     onToggleLanguage = { viewModel.toggleLanguage() },
-                    onBackClick = { navController.popBackStack() },
+                    onNavigateBack = { navController.popBackStack() },
                     onNavigateToLogin = {
                         navController.navigate(JustraDestinations.AUTH) {
                             popUpTo(JustraDestinations.HOME) { inclusive = true }
@@ -622,29 +663,7 @@ fun JustraNavGraph(
                 )
             }
 
-            composable("voice_complaint") {
-                VoiceComplaintRegistrationScreen(
-                    onNavigateBack = { navController.popBackStack() },
-                    onCaseCreated = { caseId ->
-                        navController.navigate("action_navigator/$caseId") {
-                            popUpTo(JustraDestinations.HOME)
-                        }
-                    }
-                )
-            }
-
-            composable("voice_intake") {
-                VoiceComplaintRegistrationScreen(
-                    onNavigateBack = { navController.popBackStack() },
-                    onCaseCreated = { caseId ->
-                        navController.navigate("action_navigator/$caseId") {
-                            popUpTo(JustraDestinations.HOME)
-                        }
-                    }
-                )
-            }
-
-            composable(JustraDestinations.VOICE_COMPLAINT_REGISTRATION) {
+            composable(JustraDestinations.VOICE_INTAKE) {
                 VoiceComplaintRegistrationScreen(
                     onNavigateBack = { navController.popBackStack() },
                     onCaseCreated = { caseId ->
@@ -712,7 +731,7 @@ fun JustraNavGraph(
                     currentLanguage = language,
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToVoice = { _ ->
-                        navController.navigate(Screen.VoiceComplaint.route)
+                        navController.navigate(JustraDestinations.VOICE_INTAKE)
                     }
                 )
             }
@@ -887,13 +906,7 @@ fun JustraNavGraph(
             }
         }
 
-        if (isReauthRequired && hasAcceptedConsent && isAuthenticated) {
-            BiometricReauthModal(
-                currentLanguage = language,
-                onUnlockWithBiometric = { viewModel.completeReauthentication() },
-                onVerifyPin = { pin -> viewModel.verifyPinForReauth(pin) }
-            )
-        }
+
     }
 }
 

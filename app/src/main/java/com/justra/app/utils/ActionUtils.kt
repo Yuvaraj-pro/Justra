@@ -15,10 +15,11 @@ import android.widget.Toast
 object ActionUtils {
     private const val TAG = "ActionUtils"
 
-    fun launchSecureWebPortal(context: Context, rawUrl: String) {
+    fun launchSecureWebPortal(context: Context, rawUrl: String, onSnackbarMessage: ((String) -> Unit)? = null) {
         val trimmed = rawUrl.trim()
         if (trimmed.isEmpty()) {
-            Toast.makeText(context, "இணைப்பைத் திறக்க முடியவில்லை: பிரவுசர் செயலியைச் சரிபார்க்கவும்", Toast.LENGTH_LONG).show()
+            val msg = "Invalid URL link"
+            onSnackbarMessage?.invoke(msg) ?: Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -30,23 +31,55 @@ object ActionUtils {
             trimmed
         }
 
-        try {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(formattedUrl)).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            context.startActivity(intent)
+        val uri = try {
+            Uri.parse(formattedUrl)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to launch web portal: $formattedUrl", e)
-            Toast.makeText(context, "இணைப்பைத் திறக்க முடியவில்லை: பிரவுசர் செயலியைச் சரிபார்க்கவும்", Toast.LENGTH_LONG).show()
+            val msg = "Unable to parse URL link"
+            onSnackbarMessage?.invoke(msg) ?: Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        try {
+            val customTabsIntent = androidx.browser.customtabs.CustomTabsIntent.Builder().build()
+            customTabsIntent.intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            customTabsIntent.launchUrl(context, uri)
+        } catch (e: ActivityNotFoundException) {
+            Log.w(TAG, "Chrome Custom Tabs missing, falling back to Intent.ACTION_VIEW: $formattedUrl", e)
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(intent)
+            } catch (ex: ActivityNotFoundException) {
+                Log.e(TAG, "No browser activity found: $formattedUrl", ex)
+                val msg = "No web browser application found on device"
+                onSnackbarMessage?.invoke(msg) ?: Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+            } catch (ex: SecurityException) {
+                Log.e(TAG, "SecurityException opening URL: $formattedUrl", ex)
+                val msg = "Security policy prevented opening link"
+                onSnackbarMessage?.invoke(msg) ?: Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+            } catch (ex: Exception) {
+                Log.e(TAG, "Exception opening URL: $formattedUrl", ex)
+                val msg = "Unable to launch browser application"
+                onSnackbarMessage?.invoke(msg) ?: Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+            }
+        } catch (e: SecurityException) {
+            Log.e(TAG, "SecurityException in CustomTabs: $formattedUrl", e)
+            val msg = "Security policy prevented opening link"
+            onSnackbarMessage?.invoke(msg) ?: Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            Log.e(TAG, "General exception opening web portal: $formattedUrl", e)
+            val msg = "Unable to launch browser application"
+            onSnackbarMessage?.invoke(msg) ?: Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
         }
     }
 
     /**
      * Sanitizes external URLs by prepending https:// if missing,
-     * attaches FLAG_ACTIVITY_NEW_TASK, and launches the default browser safely.
+     * attaches FLAG_ACTIVITY_NEW_TASK, and launches Chrome Custom Tabs or default browser safely.
      */
-    fun openWebUrl(context: Context, url: String) {
-        launchSecureWebPortal(context, url)
+    fun openWebUrl(context: Context, url: String, onSnackbarMessage: ((String) -> Unit)? = null) {
+        launchSecureWebPortal(context, url, onSnackbarMessage)
     }
 
     /**

@@ -89,7 +89,7 @@ class ComplaintVoiceViewModel(application: Application) : AndroidViewModel(appli
     private val _uiState = MutableStateFlow<ComplaintVoiceUiState>(ComplaintVoiceUiState.Idle)
     val uiState: StateFlow<ComplaintVoiceUiState> = _uiState.asStateFlow()
 
-    private val _selectedLanguage = MutableStateFlow(LanguagePreference.TAMIL)
+    private val _selectedLanguage = MutableStateFlow(LanguagePreference.ENGLISH)
     val selectedLanguage: StateFlow<LanguagePreference> = _selectedLanguage.asStateFlow()
 
     private val _currentRole = MutableStateFlow(securityManager.getUserRole())
@@ -98,9 +98,20 @@ class ComplaintVoiceViewModel(application: Application) : AndroidViewModel(appli
     private val _editableTranscript = MutableStateFlow("")
     val editableTranscript: StateFlow<String> = _editableTranscript.asStateFlow()
 
-    val liveWaveforms: StateFlow<List<Float>> = audioRecorderHelper.amplitudeFlow
+    private val _liveWaveforms = MutableStateFlow<List<Float>>(List(35) { 0.08f })
+    val liveWaveforms: StateFlow<List<Float>> = _liveWaveforms.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            voiceManager.liveRmsDb.collect { rms ->
+                // Map RMS dB (-2.0 to ~10.0+) into normalized 0.06f - 1.0f waveform bar heights
+                val normalized = ((rms.coerceAtLeast(0f) / 10f) * 0.9f + 0.08f).coerceIn(0.08f, 1.0f)
+                val current = _liveWaveforms.value.toMutableList()
+                if (current.size >= 35) current.removeAt(0)
+                current.add(normalized)
+                _liveWaveforms.value = current
+            }
+        }
         viewModelScope.launch {
             voiceManager.voiceState.collect { state ->
                 when (state) {
@@ -165,7 +176,6 @@ class ComplaintVoiceViewModel(application: Application) : AndroidViewModel(appli
     fun startVoiceIntake() {
         val localeCode = if (_selectedLanguage.value == LanguagePreference.TAMIL) "ta-IN" else "en-IN"
         _uiState.value = ComplaintVoiceUiState.Recording
-        audioRecorderHelper.startRecording()
         voiceManager.startListening(localeCode)
     }
 
@@ -275,7 +285,8 @@ class ComplaintVoiceViewModel(application: Application) : AndroidViewModel(appli
                     ),
                     generationConfig = GeminiGenerationConfig(
                         temperature = 0.2f,
-                        maxOutputTokens = 2048
+                        maxOutputTokens = 2048,
+                        responseMimeType = "application/json"
                     )
                 )
 

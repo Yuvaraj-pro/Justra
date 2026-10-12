@@ -51,18 +51,19 @@ fun MedicalNegligenceClaimScreen(
         ) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SovereignNavy),
+                colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                border = BorderStroke(1.dp, CardBorderStroke),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (isTa) "🏥 மருத்துவ ஆவணங்களை பெற நோயாளிக்கு முழு உரிமை" else "🏥 Statutory Right to Complete Medical Records",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Serif)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy, fontFamily = FontFamily.Serif)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (isTa) "கேட்ட 72 மணி நேரத்திற்குள் மருத்துவமனை சிகிச்சை ஆவணங்களை வழங்க வேண்டும் (NMC பிரிவு 1.3.2)." else "Hospitals MUST provide complete medical case sheets & discharge summary within 72 hours of request.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                     )
                 }
             }

@@ -1,6 +1,8 @@
 package com.justra.app.ui.components
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
@@ -17,10 +19,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.justra.app.domain.model.LanguagePreference
 import com.justra.app.ui.navigation.Screen
+import com.justra.app.ui.theme.SandstoneCard
+import com.justra.app.ui.theme.SoftNavyContainer
 import com.justra.app.ui.theme.SovereignNavy
-
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBars
+import com.justra.app.ui.theme.TextSecondaryDark
 
 @Composable
 fun AppBottomNavBar(
@@ -31,9 +33,19 @@ fun AppBottomNavBar(
 ) {
     val isTa = currentLanguage == LanguagePreference.TAMIL
 
+    val brandBlue = Color(0xFF1E3A8A)
+
+    val navBarItemColors = NavigationBarItemDefaults.colors(
+        selectedIconColor = Color.White,
+        selectedTextColor = Color.White,
+        indicatorColor = Color.White.copy(alpha = 0.2f),
+        unselectedIconColor = Color.White,
+        unselectedTextColor = Color.White
+    )
+
     NavigationBar(
         windowInsets = WindowInsets.navigationBars,
-        containerColor = SovereignNavy,
+        containerColor = brandBlue,
         contentColor = Color.White,
         tonalElevation = 8.dp,
         modifier = modifier
@@ -51,35 +63,23 @@ fun AppBottomNavBar(
                 )
             },
             alwaysShowLabel = true,
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = SovereignNavy,
-                selectedTextColor = Color.White,
-                indicatorColor = Color.White,
-                unselectedIconColor = Color.White.copy(alpha = 0.65f),
-                unselectedTextColor = Color.White.copy(alpha = 0.65f)
-            )
+            colors = navBarItemColors
         )
 
         // Hub 2: Voice & AI Assistant Intake
         NavigationBarItem(
-            selected = currentRoute == "voice_complaint" || currentRoute == Screen.VoiceComplaint.route || currentRoute == "chat_and_voice",
-            onClick = { onNavigateTo(Screen.VoiceComplaint.route) },
+            selected = currentRoute == "voice_intake" || currentRoute == "chat_and_voice",
+            onClick = { onNavigateTo("voice_intake") },
             icon = { Icon(Icons.Default.Mic, contentDescription = "Voice & AI", modifier = Modifier.size(22.dp)) },
             label = {
                 Text(
                     text = if (isTa) "குரல் & AI" else "Voice & AI",
                     fontSize = 11.sp,
-                    fontWeight = if (currentRoute == "voice_complaint") FontWeight.Bold else FontWeight.Medium
+                    fontWeight = if (currentRoute == "voice_intake") FontWeight.Bold else FontWeight.Medium
                 )
             },
             alwaysShowLabel = true,
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = SovereignNavy,
-                selectedTextColor = Color.White,
-                indicatorColor = Color.White,
-                unselectedIconColor = Color.White.copy(alpha = 0.65f),
-                unselectedTextColor = Color.White.copy(alpha = 0.65f)
-            )
+            colors = navBarItemColors
         )
 
         // Hub 3: My Cases Hub
@@ -95,13 +95,7 @@ fun AppBottomNavBar(
                 )
             },
             alwaysShowLabel = true,
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = SovereignNavy,
-                selectedTextColor = Color.White,
-                indicatorColor = Color.White,
-                unselectedIconColor = Color.White.copy(alpha = 0.65f),
-                unselectedTextColor = Color.White.copy(alpha = 0.65f)
-            )
+            colors = navBarItemColors
         )
 
         // Hub 4: Statutory Tools & Knowledge Hub
@@ -117,35 +111,24 @@ fun AppBottomNavBar(
                 )
             },
             alwaysShowLabel = true,
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = SovereignNavy,
-                selectedTextColor = Color.White,
-                indicatorColor = Color.White,
-                unselectedIconColor = Color.White.copy(alpha = 0.65f),
-                unselectedTextColor = Color.White.copy(alpha = 0.65f)
-            )
+            colors = navBarItemColors
         )
 
-        // Hub 5: Profile & Settings Hub
+        // Hub 5: Profile Hub
         NavigationBarItem(
-            selected = currentRoute == "account_settings_hub" || currentRoute == "profile",
-            onClick = { onNavigateTo("account_settings_hub") },
+            selected = currentRoute == "profile",
+            onClick = { onNavigateTo("profile") },
             icon = { Icon(Icons.Default.Person, contentDescription = "Profile", modifier = Modifier.size(22.dp)) },
             label = {
                 Text(
                     text = if (isTa) "சுயவிவரம்" else "Profile",
                     fontSize = 11.sp,
-                    fontWeight = if (currentRoute == "account_settings_hub") FontWeight.Bold else FontWeight.Medium
+                    fontWeight = if (currentRoute == "profile") FontWeight.Bold else FontWeight.Medium
                 )
             },
             alwaysShowLabel = true,
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = SovereignNavy,
-                selectedTextColor = Color.White,
-                indicatorColor = Color.White,
-                unselectedIconColor = Color.White.copy(alpha = 0.65f),
-                unselectedTextColor = Color.White.copy(alpha = 0.65f)
-            )
+            colors = navBarItemColors
         )
     }
 }
+

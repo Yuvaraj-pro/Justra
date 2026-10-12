@@ -59,18 +59,19 @@ fun GratuityPFCalculatorScreen(
         ) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SovereignNavy),
+                colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                border = BorderStroke(1.dp, CardBorderStroke),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (isTa) "💼 5 ஆண்டுகள் முடித்த ஊழியருக்கு பணிக்கொடை கட்டாயம்" else "💼 Mandatory Gratuity upon 5 Years Service",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Serif)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy, fontFamily = FontFamily.Serif)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (isTa) "நிறுவனம் 30 நாட்களுக்குள் பணிக்கொடை வழங்காவிட்டால் 10% வட்டியுடன் வழங்க வேண்டும்." else "Employer must pay gratuity within 30 days of exit, else simple interest (10%) applies under Sec 7(3A).",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                     )
                 }
             }

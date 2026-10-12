@@ -41,10 +41,12 @@ fun JustraBottomBar(
     )
     val isTa = currentLanguage == LanguagePreference.TAMIL
 
+    val brandBlue = Color(0xFF1E3A8A)
+
     NavigationBar(
         windowInsets = WindowInsets.navigationBars,
-        containerColor = Color(0xFFFAF7F2),
-        contentColor = SovereignNavy,
+        containerColor = brandBlue,
+        contentColor = Color.White,
         modifier = modifier
     ) {
         items.forEach { item ->
@@ -58,10 +60,10 @@ fun JustraBottomBar(
                 label = { Text(if (isTa) item.labelTa else item.labelEn) },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = Color.White,
-                    selectedTextColor = SovereignNavy,
-                    indicatorColor = SovereignNavy,
-                    unselectedIconColor = SovereignNavy.copy(alpha = 0.6f),
-                    unselectedTextColor = SovereignNavy.copy(alpha = 0.6f)
+                    selectedTextColor = Color.White,
+                    indicatorColor = Color.White.copy(alpha = 0.2f),
+                    unselectedIconColor = Color.White,
+                    unselectedTextColor = Color.White
                 )
             )
         }

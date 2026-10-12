@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.justra.app.domain.model.LanguagePreference
 import com.justra.app.ui.theme.SovereignNavy
+import com.justra.app.ui.theme.WarmIvorySurface
 import java.io.File
 import java.io.FileOutputStream
 
@@ -67,9 +68,9 @@ fun SmartComplaintScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = SovereignNavy,
-                    titleContentColor = Color(0xFFFAF7F2),
-                    navigationIconContentColor = Color(0xFFFAF7F2)
+                    containerColor = WarmIvorySurface,
+                    titleContentColor = SovereignNavy,
+                    navigationIconContentColor = SovereignNavy
                 )
             )
         },

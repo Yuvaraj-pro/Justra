@@ -51,18 +51,19 @@ fun IntellectualPropertyCopyrightScreen(
         ) {
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SovereignNavy),
+                colors = CardDefaults.cardColors(containerColor = SandstoneCard),
+                border = BorderStroke(1.dp, CardBorderStroke),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (isTa) "©️ வர்த்தக முத்திரை & பதிப்புரிமை மீறல் தடுப்பு" else "©️ Cease & Desist Infringement Demand Notice",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Serif)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = SovereignNavy, fontFamily = FontFamily.Serif)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = if (isTa) "போலி பிராண்ட் பயன்பாடு மற்றும் காப்பி அடித்தலை தடுக்க 7 நாள் இறுதிக்கெடு அறிவிப்பு அனுப்பலாம்." else "Issue 7-day statutory warning against brand impersonation, deceptive similarity, and stolen digital assets.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.85f))
+                        style = MaterialTheme.typography.bodySmall.copy(color = TextSecondaryDark)
                     )
                 }
             }

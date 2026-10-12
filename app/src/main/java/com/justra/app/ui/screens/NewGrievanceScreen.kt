@@ -18,7 +18,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.justra.app.domain.model.DisputeCategory
 import com.justra.app.domain.model.LanguagePreference
+import com.justra.app.ui.components.NonGovernmentDisclaimerCard
 import com.justra.app.ui.theme.SovereignNavy
+import com.justra.app.ui.theme.WarmIvorySurface
 import com.justra.app.ui.viewmodel.NyayaMateViewModel
 import com.justra.app.util.LegalInputValidator
 
@@ -59,9 +61,9 @@ fun NewGrievanceScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = SovereignNavy,
-                    titleContentColor = Color(0xFFFAF7F2),
-                    navigationIconContentColor = Color(0xFFFAF7F2)
+                    containerColor = WarmIvorySurface,
+                    titleContentColor = SovereignNavy,
+                    navigationIconContentColor = SovereignNavy
                 )
             )
         },
@@ -197,6 +199,8 @@ fun NewGrievanceScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(if (isTa) "?????? ????? ????? & ????? ????? ?????" else "Submit & Proceed to Smart Complaint")
                     }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    NonGovernmentDisclaimerCard(modifier = Modifier.padding(bottom = 12.dp))
                 }
             }
         }
