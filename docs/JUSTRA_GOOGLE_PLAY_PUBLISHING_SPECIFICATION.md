@@ -210,7 +210,7 @@
 ### SECTION 8 — FINAL CONFIRMATION
 
 #### 39. Application Readiness Checklist
-- [x] Target SDK set to **API 35** (Android 15)
+- [x] Target SDK set to **API 36** (Android 16)
 - [x] Min SDK set to **API 26** (Android 8.0)
 - [x] 64-bit architecture support verified
 - [x] Release bundle compiled and signed with `justra-release-key.jks`

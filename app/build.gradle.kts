@@ -13,15 +13,14 @@ plugins {
 
 android {
   namespace = "com.justra.app"
-  compileSdk = 35
+  compileSdk = 36
 
   defaultConfig {
     applicationId = "com.justra.app"
     minSdk = 26
-    targetSdk = 35
-    versionCode = 214
-    versionName = "2.1.4"
-
+    targetSdk = 36
+    versionCode = 9
+    versionName = "2.1.6"
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
